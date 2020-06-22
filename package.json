@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:LiuHang1030/DLS-Timebar.git"
+    "url": "git@git.evatlas.com:fe-core-components/portal/dls-timebar.git"
   },
   "author": "liuhang",
   "license": "ISC",
