@@ -2,7 +2,7 @@
   "name": "@portal/dls-timebar",
   "version": "1.0.0",
   "description": "时间轴",
-  "main": "src/index.js",
+  "main": "src/demo.js",
   "scripts": {
     "dev": "webpack-dev-server --mode=development --config webpack.config.js",
     "build": "webpack  --mode=production --config webpack.config.js"
