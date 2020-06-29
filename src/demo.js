@@ -160,11 +160,8 @@ export default class Timebar {
   updateBufferYears() {
     let currentStartTime = this.getTimeByPixel(this.translate.x);
     let oneScreenTime = this.getTimeByPixel(this.$html.width()) - this.getTimeByPixel(0);
-    console.log(oneScreenTime)
     this.bufferYears.min = this.getTimeByPixel(0) - oneScreenTime;
-    console.log(this.bufferYears.min)
     this.bufferYears.max = this.getTimeByPixel(0) + oneScreenTime * 2;
-    console.log(this.bufferYears.max)
     this.zeroX = this.getXbyTime(0);
     this.renderStartX = ((this.minYear - currentStartTime - oneScreenTime) / this.unitTime) * this.unitWidth;
   }
@@ -287,6 +284,7 @@ export default class Timebar {
     /**
      * 设置滑动的边界，如果超出滑动边界，则使用边界值
      */
+    console.log('startOffsetPx' + this.startOffsetPx)
     if (x > this.centerPx - this.startOffsetPx) {
 
       this.translate.x = this.centerPx - this.startOffsetPx;
@@ -317,9 +315,10 @@ export default class Timebar {
    */
   getTimeByPixel(_x) {
     let x = _x - this.translate.x;
-    console.log('x' + x)
+
     let percentX = x / this.totalWidth;
-    console.log('percent' + percentX)
+
+
     // console.log(percentX * this.totalTime + this.minYear)
     let time = percentX * this.totalTime + this.minYear;
     if (Math.floor(time) == 0) {

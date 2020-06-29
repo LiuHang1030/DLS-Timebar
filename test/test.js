@@ -1,3 +1,4 @@
-import Timebar from '../src/index.js'
+import Philtimebar from './phil-timebar.js'
 
-const timebar = new Timebar()
+const timebar = new Philtimebar()
+
