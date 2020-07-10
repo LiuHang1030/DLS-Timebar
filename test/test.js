@@ -1,4 +1,4 @@
-import Philtimebar from './phil-timebar.js'
 
-const timebar = new Philtimebar()
+import Philtimebar from '../src/index.js'
+
 

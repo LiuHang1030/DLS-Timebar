@@ -2,8 +2,8 @@
  * 时间轴
  * 支持，缩放拖拽
  */
-import dateUtil from './utils/dateUtil';
-import timeMath from './utils/math';
+import dateUtil from '../utils/dateUtil';
+import timeMath from '../utils/math';
 
 import {
   TweenLite,
@@ -11,24 +11,25 @@ import {
 } from 'gsap';
 
 export default class Timebar {
-
-  // events = {
-  //   'change': []
-  // };
-
   constructor(props) {
     Object.assign(this, {
+      $html: undefined,
+      canvas: undefined,
+      ctx: undefined,
       tickTime: +new Date,
       tick: 50,
+      marginTop: 100,
       container: document.body,
-      minYear: -5000,
-      maxYear: 2500,
+      minYear: -2000,
+      maxYear: new Date().getFullYear(),
       minZoom: 0.5,
       maxZoom: 10,
       minUnitWidth: 8,
       maxUnitWidth: 16,
       totalWidth: 0,
-      unitTime: 10,
+      unitTime: 40,
+      minUnitTime: 1, // 最小刻度
+      maxUnitTime: 40, // 最大刻度
       zoomSpeed: 0.5,
       zoom: 1,
       unitWidth: 8,
@@ -66,15 +67,17 @@ export default class Timebar {
       offsetAreaDuration: 0,
       scalable: true,
       draggable: true,
+      events: {
+        'change': []
+      },
       onChange: (e = {}) => {
-        // this.events['change'].forEach(fn => {
-        //   fn(this, e)
-        // })
+        this.events['change'].forEach(fn => {
+          fn(this, e)
+        })
       },
       onRender() { },
       onAnimateFinish() { }
     }, props);
-
 
 
 
@@ -87,7 +90,9 @@ export default class Timebar {
      */
     this.totalTime = this.maxYear - this.minYear;
 
-    this.createCanvas();
+
+
+
 
     /**
      * 兼容IOS
@@ -97,25 +102,25 @@ export default class Timebar {
       return false;
     };
 
+
+    // this.createCanvas();
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-
-
-
     this.render();
     this.bind();
 
-  }
 
+  }
   createCanvas() {
+    this.$html = $(document.createElement('div'))
+    this.$html.attr('class', 'dls-timebar-box')
     this.canvas = document.createElement('canvas');
 
-    this.$html = $(window)
+    this.$html.append(this.canvas)
 
     this.ctx = this.canvas.getContext('2d');
-
-    this.container.appendChild(this.canvas);
+    this.container.appendChild(this.$html[0]);
 
   }
 
@@ -125,6 +130,7 @@ export default class Timebar {
     this.canvas.width = this.$html.width() * this.ratio;
     this.canvas.height = this.$html.height() * this.ratio;
     this.centerPx = this.$html.width() / 2;
+    this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
     this.render();
@@ -132,18 +138,23 @@ export default class Timebar {
   }
 
   render() {
-
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.width)
-
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.save();
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
-
     this.drawUnit();
-    this.drawDisable();
+
+    let renderData = {
+      screenStartTime: this.getTimeByPixel(0),
+      screenEndTime: this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0),
+      unitTime: this.unitTime,
+      ruler: this
+    }
+
+    this.onRender(renderData);
     this.ctx.restore();
 
-    this.onRender(this);
+
   }
 
   /**
@@ -158,15 +169,13 @@ export default class Timebar {
    * 根据当前状态更新bufferYears
    */
   updateBufferYears() {
-    let currentStartTime = this.getTimeByPixel(this.translate.x);
-    let oneScreenTime = this.getTimeByPixel(this.$html.width()) - this.getTimeByPixel(0);
+    let currentStartTime = this.getTimeByPixel(this.translate.y);
+    let oneScreenTime = this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0);
     this.bufferYears.min = this.getTimeByPixel(0) - oneScreenTime;
     this.bufferYears.max = this.getTimeByPixel(0) + oneScreenTime * 2;
-    this.zeroX = this.getXbyTime(0);
+    this.zeroX = this.getYbyTime(0);
     this.renderStartX = ((this.minYear - currentStartTime - oneScreenTime) / this.unitTime) * this.unitWidth;
   }
-
-
   drawUnit() {
     /**
      * 为了减少绘制图形数量，采用bufferMinYear & bufferMaxYear的方式绘制，范围未前后一屏；
@@ -184,14 +193,14 @@ export default class Timebar {
     if (this.bufferYears.min < 0) {
       for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
 
-        let x = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
+        let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
         let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-        this.drawLine(x, isLongUnit ? 20 : 10);
+        this.drawLine(y, isLongUnit ? 20 : 10);
 
         // console.log(i)
         if (isLongUnit) {
-          this.drawText(i - this.unitTime, x)
+          this.drawText(i - this.unitTime, y)
         }
 
         loneLineCounter++;
@@ -206,7 +215,7 @@ export default class Timebar {
     if (this.bufferYears.max > 0) {
       for (let i = 1; i < this.bufferYears.max; i += this.unitTime) {
 
-        let x = loneLineCounter * this.unitWidth + this.zeroX;;
+        let y = loneLineCounter * this.unitWidth + this.zeroX;;
         let isLongUnit = loneLineCounter % 10 == 0;
 
 
@@ -215,10 +224,10 @@ export default class Timebar {
           text = i
         }
 
-        this.drawLine(x, isLongUnit ? 20 : 8);
+        this.drawLine(y, isLongUnit ? 20 : 8);
 
         if (isLongUnit) {
-          this.drawText(text, x)
+          this.drawText(text, y)
         }
 
         loneLineCounter++;
@@ -226,13 +235,15 @@ export default class Timebar {
     }
   }
 
-  drawLine(x, height = 10) {
-    x = Math.floor(x);
+  drawLine(y, width = 10) {
 
+    y = Math.floor(y);
+
+    let halfWidth = width / 2
     this.ctx.beginPath();
     this.ctx.lineWidth = 1;
-    this.ctx.moveTo(x, 0);
-    this.ctx.lineTo(x, height);
+    this.ctx.moveTo(this.centerPx - halfWidth, y);
+    this.ctx.lineTo(this.centerPx + halfWidth, y);
     this.ctx.stroke();
     this.ctx.closePath();
   }
@@ -264,7 +275,7 @@ export default class Timebar {
     this.ctx.closePath();
   }
 
-  drawText(year, x, y = 31) {
+  drawText(year, y) {
     let month = dateUtil.yearToMonth(year, 'short-en');
     let text = Math.floor(year);
 
@@ -273,28 +284,27 @@ export default class Timebar {
     }
     this.ctx.beginPath();
     this.ctx.textAlign = "center";
-    this.ctx.fillText(text, Math.round(x), y + 6)
+    this.ctx.fillText(text, Math.round(this.centerPx - 30), y + 3)
     this.ctx.closePath();
   }
 
-  _fixOverFlowTranslate(x) {
+  _fixOverFlowTranslate(y) {
 
 
     // return;
     /**
      * 设置滑动的边界，如果超出滑动边界，则使用边界值
      */
-    console.log('startOffsetPx' + this.startOffsetPx)
-    if (x > this.centerPx - this.startOffsetPx) {
+    if (y > this.centerHeight - this.startOffsetPx) {
 
-      this.translate.x = this.centerPx - this.startOffsetPx;
+      this.translate.y = this.centerHeight - this.startOffsetPx;
 
-    } else if (-x > this.totalWidth - this.centerPx - this.endOffsetPx) {
+    } else if (-y > this.totalWidth - this.centerHeight - this.endOffsetPx) {
 
-      this.translate.x = -this.totalWidth + this.centerPx + this.endOffsetPx
+      this.translate.y = -this.totalWidth + this.centerHeight + this.endOffsetPx
     } else {
 
-      this.translate.x = x;
+      this.translate.y = y;
     }
 
     // console.log(x, this.centerPx, this.startOffsetPx);
@@ -311,16 +321,13 @@ export default class Timebar {
 
   /**
    * 传入时间轴x坐标，获取对应位置
-   * @param  _x
+   * @param  _y
    */
-  getTimeByPixel(_x) {
-    let x = _x - this.translate.x;
-
-    let percentX = x / this.totalWidth;
-
-
+  getTimeByPixel(_y) {
+    let y = _y - this.translate.y;
+    let percentY = y / this.totalWidth;
     // console.log(percentX * this.totalTime + this.minYear)
-    let time = percentX * this.totalTime + this.minYear;
+    let time = percentY * this.totalTime + this.minYear;
     if (Math.floor(time) == 0) {
       time = 1;
     }
@@ -331,8 +338,8 @@ export default class Timebar {
    *
    * @returns {year,month}
    */
-  getDateByPixel(_x) {
-    let time = this.getTimeByPixel(_x);
+  getDateByPixel(_y) {
+    let time = this.getTimeByPixel(_y);
     return {
       year: Math.floor(time),
       month: dateUtil.yearToMonth(time),
@@ -343,7 +350,7 @@ export default class Timebar {
    * 传入时间获取该时间在画布中的 X
    * @param {number} time
    */
-  getXbyTime(time) {
+  getYbyTime(time) {
     let percent = (time - this.minYear) / this.totalTime;
     return percent * this.totalWidth;
   }
@@ -353,17 +360,18 @@ export default class Timebar {
    * @param {number} time
    */
   getScreenXbyTime(time) {
-    let x = this.getXbyTime(time);
-    return Math.round(x + this.translate.x);
+    let x = this.getYbyTime(time);
+    return Math.round(x + this.translate.y);
   }
 
   /**
    * 获取区间的起始时间
    */
   getAreaTime() {
-    let start = this.getTimeByPixel(this.centerPx - this.startOffsetPx)
-    let end = this.getTimeByPixel(this.centerPx + this.endOffsetPx)
 
+    let start = this.getTimeByPixel(this.centerHeight - this.startOffsetPx)
+    let end = this.getTimeByPixel(this.centerHeight + this.endOffsetPx)
+    console.log(start)
     return {
       start,
       end
@@ -397,12 +405,13 @@ export default class Timebar {
       }
     }
 
-    let newX = -this.getXbyTime(time) + this.centerPx;
+    let newY = -this.getYbyTime(time) + this.centerHeight;
 
 
     TweenLite.to(this.translate, animate, {
-      x: newX,
-      onUpdate: () => {
+      y: newY,
+      onUpdateParams: ['{ self }'],
+      onUpdate: (tn) => {
         this.updateBufferYears();
         this.render();
         if (cb) {
@@ -486,16 +495,15 @@ export default class Timebar {
 
 
     let targetCenterTime = startTime + (endTime - startTime) / 2;
-    let currentCenterTime = this.getTimeByPixel(this.centerPx);
+    let currentCenterTime = this.getTimeByPixel(this.centerHeight);
     let centerTimeDelta = targetCenterTime - currentCenterTime;
 
     TweenLite.to(this, animate, {
       ease: Power0.easeNone,
       unitTime,
       unitWidth,
-      onUpdateParams: ['{self}'],
+      onUpdateParams: ['{ self }'],
       onUpdate: tn => {
-
         let animateProcess = tn.progress();
         let centerTime = centerTimeDelta * animateProcess + currentCenterTime;
         this.updateTotalWidth();
@@ -518,20 +526,20 @@ export default class Timebar {
    * @param {number} delta
    */
   _zoom(delta) {
+
+
     /**
      * 定义新的参数
      */
     let newUnitWidth = this.unitWidth;
     let newUnitTime = this.unitTime;
-
     newUnitWidth += delta;
 
 
     /**
      * 获取现在中心时间
      */
-    let centerTime = this.getTimeByPixel(this.centerPx);
-
+    let centerTime = this.getTimeByPixel(this.centerHeight);
     /**
      * 计算缩放后的单位长度
      */
@@ -540,13 +548,23 @@ export default class Timebar {
 
 
     if (newUnitWidth > this.maxUnitWidth) {
+      if (this.unitTime <= this.minUnitTime) {
+        return
+      }
       newUnitWidth = this.minUnitWidth;
-      newUnitTime = this.unitTime / zoomRatio;
+      newUnitTime = Math.floor(this.unitTime / zoomRatio);
     }
 
+
     if (newUnitWidth < this.minUnitWidth) {
+      if (this.unitTime >= this.maxUnitTime) {
+        return
+      }
       newUnitWidth = this.maxUnitWidth;
-      newUnitTime = this.unitTime * zoomRatio;
+      /**
+       * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
+       */
+      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio;
     }
 
 
@@ -557,7 +575,6 @@ export default class Timebar {
      * 如果10个刻度小于一年则不再缩放
      */
     let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
-
     if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
       return;
     }
@@ -575,9 +592,8 @@ export default class Timebar {
      */
     this.updateTotalWidth();
 
-
     this.setCenterByTime(centerTime);
-    this._fixOverFlowTranslate(this.translate.x);
+    this._fixOverFlowTranslate(this.translate.y);
 
     this.updateBufferYears();
 
@@ -604,7 +620,7 @@ export default class Timebar {
     if (!this.scalable) {
       return;
     }
-    e.preventDefault();
+    // e.preventDefault();
 
     let {
       deltaY
@@ -628,11 +644,9 @@ export default class Timebar {
       x: this.mousePos.x,
       y: this.mousePos.y
     };
-    console.log(this.mousedownPos)
     this.downTranslate = {
       ...this.translate
     };
-    console.log(this.downTranslate)
   }
 
   /**
@@ -651,14 +665,14 @@ export default class Timebar {
       if (!this.draggable) {
         return;
       }
-      let delatX = this.mousePos.x - this.mousedownPos.x;
+      let delatY = this.mousePos.y - this.mousedownPos.y;
 
-      let newX = this.downTranslate.x + delatX;
+      let newY = this.downTranslate.y + delatY;
 
       /**
        * 超出边界的处理
        */
-      this._fixOverFlowTranslate(newX)
+      this._fixOverFlowTranslate(newY)
 
 
       this.updateBufferYears();
@@ -692,7 +706,7 @@ export default class Timebar {
     $(window).on('mouseup.dls-map-timebar', this._mouseup.bind(this))
 
 
-    let mouseEventDom = this.$html;
+    let mouseEventDom = $(window);
 
 
 
