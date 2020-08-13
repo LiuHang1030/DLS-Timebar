@@ -38,24 +38,23 @@ export default class PhilTimebar {
   }
 
   drawAvatar(e) {
+    // tab栏进行东西方哲学家筛选功能
+    this.eastShowList = []
+    this.westShowList = []
+
     this.hiddenList = []
     this.centerPx = e.ruler.centerPx
 
-    let eastData = this.nowPhilData.filter((item) => item.originType == 'EAST')
-    let westData = this.nowPhilData.filter((item) => item.originType == 'WEST')
-    eastData.forEach((item, index) => {
-      const x = index % 2 == 0 ? this.centerPx + 100 : this.centerPx + 200
-      item.x = x
-    })
-    westData.forEach((item, index) => {
-      const x = index % 2 == 0 ? this.centerPx - 100 : this.centerPx - 200
-      item.x = x
-    })
+    this.eastData = this.getOriginData('EAST')
+    this.westData = this.getOriginData('WEST')
 
-
-    this.filterCanDrawList(e)
+    this.eastShowList = this.filterCanDrawList(e, this.eastData)
+    this.westShowList = this.filterCanDrawList(e, this.westData)
+    // const { showList, hiddenList } = this.filterCanDrawList(e)
     let filterHiddenList = Array.from(new Set(this.hiddenList))
-    // console.log(filterHiddenList)
+
+
+
     let showList = this.nowPhilData.reduce(function (pre, cur) {
       if (filterHiddenList.every(item => item.id !== cur.id)) {
         pre.push(cur)
