@@ -1,6 +1,4 @@
 import Service from '../src/utils/ajaxUtil'
-import Mock from 'mockjs'
-const Random = Mock.Random;
 import PhilTimebar from './phil-timebar'
 
 
@@ -30,17 +28,9 @@ Service.getPhilData().then((resp) => {
         const mockLength = 50
         let philData = phils
         let periodData = []
-        // for (let i = 0; i < mockLength; i++) {
-        //   philData.push(Mock.mock({
-        //     'importance': Random.pick([1, 2, 3]),
-        //     'itemName': Random.cname(),
-        //     'originType': Random.pick(['WEST', 'EAST']),
-        //     'year|-1200-2000': -1200,
-        //     'avatarUrl': Random.rgb(),
-        //     'period': '所属时期'
-        //   }))
-        // }
         periodData = data
+
+
         const philTimeBar = new PhilTimebar({
           philData,
           periodData

@@ -20,19 +20,19 @@ export default class Timebar {
       tick: 50,
       marginTop: 100,
       container: document.body,
-      minYear: -2000,
+      minYear: -800,
       maxYear: new Date().getFullYear(),
       minZoom: 0.5,
       maxZoom: 10,
-      minUnitWidth: 8,
-      maxUnitWidth: 16,
+      minUnitWidth: 16,
+      maxUnitWidth: 32,
       totalWidth: 0,
       unitTime: 40,
       minUnitTime: 1, // 最小刻度
       maxUnitTime: 40, // 最大刻度
       zoomSpeed: 0.5,
       zoom: 1,
-      unitWidth: 8,
+      unitWidth: 16,
       mousePos: {
         x: 0,
         y: 0,
@@ -181,58 +181,93 @@ export default class Timebar {
      * 为了减少绘制图形数量，采用bufferMinYear & bufferMaxYear的方式绘制，范围未前后一屏；
      * 使用两个循环，分别处理小于1年与1年之后的，保证1年一定存在
      */
-
     this.ctx.strokeStyle = '#CAD2D6';
     this.ctx.fillStyle = '#999999';
     let loneLineCounter = 0;
 
 
-    /**
-     * 绘制1年之前的刻度
-     */
-    if (this.bufferYears.min < 0) {
-      for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
 
-        let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
-        let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-        this.drawLine(y, isLongUnit ? 20 : 10);
+    for (let i = 0; i > this.minYear; i -= this.unitTime) {
+      let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
+      let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-        // console.log(i)
-        if (isLongUnit) {
-          this.drawText(i - this.unitTime, y)
-        }
+      this.drawLine(y, isLongUnit ? 20 : 8);
 
-        loneLineCounter++;
+      // console.log(i)
+      if (isLongUnit) {
+        this.drawText(i - this.unitTime, y)
       }
-    }
 
-    loneLineCounter = 0;
+      loneLineCounter++;
+
+    }
+    loneLineCounter = 0
+    for (let i = 1; i < this.maxYear; i += this.unitTime) {
+
+      let y = loneLineCounter * this.unitWidth + this.zeroX;;
+      let isLongUnit = loneLineCounter % 10 == 0;
+
+
+      let text = i - 1;
+      if (i == 1) {
+        text = `${i}AD`
+      }
+
+      this.drawLine(y, isLongUnit ? 20 : 8);
+
+      if (isLongUnit) {
+        this.drawText(text, y)
+      }
+
+      loneLineCounter++;
+    }
+    // /**
+    //  * 绘制1年之前的刻度
+    //  */
+    // if (this.bufferYears.min < 0) {
+    //   for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
+
+    //     let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
+    //     let isLongUnit = (loneLineCounter + 1) % 10 == 0;
+
+    //     this.drawLine(y, isLongUnit ? 20 : 8);
+
+    //     // console.log(i)
+    //     if (isLongUnit) {
+    //       this.drawText(i - this.unitTime, y)
+    //     }
+
+    //     loneLineCounter++;
+    //   }
+    // }
+
+    // loneLineCounter = 0;
 
     /**
      * 绘制1年之后的年份
      */
-    if (this.bufferYears.max > 0) {
-      for (let i = 1; i < this.bufferYears.max; i += this.unitTime) {
+    // if (this.bufferYears.max > 0) {
+    //   for (let i = 1; i < this.bufferYears.max; i += this.unitTime) {
 
-        let y = loneLineCounter * this.unitWidth + this.zeroX;;
-        let isLongUnit = loneLineCounter % 10 == 0;
+    //     let y = loneLineCounter * this.unitWidth + this.zeroX;;
+    //     let isLongUnit = loneLineCounter % 10 == 0;
 
 
-        let text = i - 1;
-        if (i == 1) {
-          text = i
-        }
+    //     let text = i - 1;
+    //     if (i == 1) {
+    //       text = i
+    //     }
 
-        this.drawLine(y, isLongUnit ? 20 : 8);
+    //     this.drawLine(y, isLongUnit ? 20 : 8);
 
-        if (isLongUnit) {
-          this.drawText(text, y)
-        }
+    //     if (isLongUnit) {
+    //       this.drawText(text, y)
+    //     }
 
-        loneLineCounter++;
-      }
-    }
+    //     loneLineCounter++;
+    //   }
+    // }
   }
 
   drawLine(y, width = 10) {
@@ -284,24 +319,27 @@ export default class Timebar {
     }
     this.ctx.beginPath();
     this.ctx.textAlign = "center";
-    this.ctx.fillText(text, Math.round(this.centerPx - 30), y + 3)
+    this.ctx.fillText(text < 0 ? `${Math.abs(year)}BC` : year, Math.round(this.centerPx - 30), y + 3)
     this.ctx.closePath();
   }
 
   _fixOverFlowTranslate(y) {
 
 
+
     // return;
     /**
      * 设置滑动的边界，如果超出滑动边界，则使用边界值
      */
-    if (y > this.centerHeight - this.startOffsetPx) {
+    // console.log(y)
+    let startOffsetPx = this.getYbyTime(this.minYear)
+    let endOffsetPx = this.getYbyTime(this.maxYear)
+    if (y > startOffsetPx) {
 
-      this.translate.y = this.centerHeight - this.startOffsetPx;
+      this.translate.y = startOffsetPx;
 
-    } else if (-y > this.totalWidth - this.centerHeight - this.endOffsetPx) {
-
-      this.translate.y = -this.totalWidth + this.centerHeight + this.endOffsetPx
+    } else if (-y > endOffsetPx - this.$html.height()) {
+      this.translate.y = -(endOffsetPx - this.$html.height());
     } else {
 
       this.translate.y = y;
@@ -320,7 +358,7 @@ export default class Timebar {
 
 
   /**
-   * 传入时间轴x坐标，获取对应位置
+   * 传入时间轴y坐标，获取对应位置
    * @param  _y
    */
   getTimeByPixel(_y) {
@@ -347,7 +385,7 @@ export default class Timebar {
   }
 
   /**
-   * 传入时间获取该时间在画布中的 X
+   * 传入时间获取该时间在画布中的 Y
    * @param {number} time
    */
   getYbyTime(time) {

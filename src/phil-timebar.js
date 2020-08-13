@@ -62,7 +62,7 @@ export default class PhilTimebar {
       }
       return pre;
     }, [])
-    console.log(showList)
+    // console.log(showList)
     showList.forEach((phil) => {
       const { originType, year, itemName, timeStr } = phil
       const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
@@ -111,9 +111,7 @@ export default class PhilTimebar {
    * @desc 根据当前屏幕起始年 过滤不需要显示的数据
    */
   filterPhilData(startTime, endTime) {
-    return this.philData.filter((item) => {
-      return item.year > startTime || item.year < endTime
-    }).sort((m, n) => m.year - n.year)
+    return this.philData.filter(item => item.year > startTime || item.year < endTime).sort((m, n) => m.year - n.year)
   }
   /**
    * 
@@ -122,10 +120,8 @@ export default class PhilTimebar {
    * @desc 根据当前屏幕起始年 过滤不需要显示的分期数据
    */
   filterPeriodData(startTime, endTime) {
-    return this.periodData.filter((item) => {
-      // 分期标识显示逻辑不同于哲学家头像显示逻辑
-      return item.startYear > startTime || item.endYear < endTime
-    })
+    // 分期标识显示逻辑不同于哲学家头像显示逻辑
+    return this.periodData.filter(item => item.startYear > startTime || item.endYear < endTime)
   }
   /**
    * 
@@ -133,9 +129,7 @@ export default class PhilTimebar {
    * @desc 获取东、西方哲学家 年份从小到大排序后的数据
    */
   getOriginData(origin) {
-    return this.nowPhilData.filter((item) => {
-      return item.originType === origin
-    }).sort((m, n) => m.year - n.year)
+    return this.nowPhilData.filter(item => item.originType === origin).sort((m, n) => m.year - n.year)
   }
   /**
    * @desc 寻找离当前圆心最近的圆圈
@@ -217,7 +211,7 @@ export default class PhilTimebar {
       // console.log(coinCideList)
       if (!coinCideList.length) {
         const nowItem = item
-        console.log(`${nowItem.itemName}与任何相邻节点没有重合关系`)
+        // console.log(`${nowItem.itemName}与任何相邻节点没有重合关系`)
         // 如果当前节点与任何节点都没有重合关系，需要判断所有大于他优先级的 节点都 canDraw为 true 的情况下，才能设置 canDraw 为 true
         const moreImportanceList = this.nowPhilData.filter((item) => item.importance < nowItem.importance)
         const nowItemCanDraw = moreImportanceList.every((item) => item.canDraw == true)
@@ -228,8 +222,8 @@ export default class PhilTimebar {
         }
       } else {
         this.hiddenList = this.hiddenList.concat(coinCideList)
-        console.log(`${item.itemName}有重合关系的是`)
-        console.log(coinCideList)
+        // console.log(`${item.itemName}有重合关系的是`)
+        // console.log(coinCideList)
       }
     })
   }

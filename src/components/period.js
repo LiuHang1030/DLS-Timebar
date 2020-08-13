@@ -30,15 +30,18 @@ export default class Period {
     this.ctx.lineTo(x2, y)
     this.ctx.closePath()
     this.ctx.lineWidth = 1
-    this.ctx.strokeStyle = '#4DECC0'
+    this.ctx.strokeStyle = '#fff'
     this.ctx.stroke()
+    this.ctx.closePath()
   }
   drawText(text, x, y) {
     const x2 = this.origin == 'EAST' ? x - TEXT_MARGIN : x + TEXT_MARGIN
+    this.ctx.beginPath()
     this.ctx.font = '12px sans-serif';
-    this.ctx.strokeStyle = '#FFFFFF'
+    this.ctx.strokeStyle = '#fff'
     this.ctx.textAlign = this.origin === 'EAST' ? 'right' : 'left';
     this.ctx.textBaseline = 'top';
     this.ctx.fillTextVertical(text, x2, y + TEXT_MARGIN);
+    this.ctx.closePath()
   }
 }
