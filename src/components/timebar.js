@@ -146,7 +146,7 @@ export default class Timebar {
 
     let renderData = {
       screenStartTime: this.getTimeByPixel(0),
-      screenEndTime: this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0),
+      screenEndTime: this.getTimeByPixel(this.$html.height()),
       unitTime: this.unitTime,
       ruler: this
     }

@@ -2,6 +2,7 @@ import Canvas from './components/canvas'
 import Timebar from './components/timebar'
 import Avatar from './components/avatar'
 import Quote from './components/quote'
+// import Controller from './components/controller'
 import Period from './components/period'
 
 
@@ -11,7 +12,8 @@ export default class PhilTimebar {
       periodData: [], // 哲学家数据
       philData: [], // 分期数据
       nowPhilData: [], // 现在可显示的哲学家数据
-      nowPeriodData: [] // 现在可显示的分期数据
+      nowPeriodData: [], // 现在可显示的分期数据
+      CIRCLE_DIAMETER: 130,
     }, props)
 
     this.initial()
@@ -22,7 +24,7 @@ export default class PhilTimebar {
       ctx: this.ctx,
       onRender: (e) => {
         const { screenStartTime, screenEndTime } = e
-        this.nowPhilData = this.filterPhilData(screenStartTime, screenEndTime)
+        // this.nowPhilData = this.filterWithInPhilData(screenStartTime, screenEndTime)
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
         this.drawAvatar(e)
@@ -39,34 +41,25 @@ export default class PhilTimebar {
 
   drawAvatar(e) {
     // tab栏进行东西方哲学家筛选功能
-    this.eastShowList = []
-    this.westShowList = []
-
-    this.hiddenList = []
+    const { screenStartTime, screenEndTime } = e
     this.centerPx = e.ruler.centerPx
+    // 将数据分为东西方两类
+    let eastData = this.getOriginData('EAST')
+    let westData = this.getOriginData('WEST')
+    console.log(westData)
+    // 筛选出所有当前轴起止年范围内的哲学家
+    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime * 2, screenEndTime * 2)
+    let withInWestData = this.filterWithInPhilData(westData, screenStartTime * 2, screenEndTime * 2)
 
-    this.eastData = this.getOriginData('EAST')
-    this.westData = this.getOriginData('WEST')
+    // 根据当前范围内哲学家，比较优先级筛选出可渲染哲学家数据
+    let canDrawEastData = this.filterCanDrawList(e, withInEastData)
+    let canDrawWestData = this.filterCanDrawList(e, withInWestData)
 
-    this.eastShowList = this.filterCanDrawList(e, this.eastData)
-    this.westShowList = this.filterCanDrawList(e, this.westData)
-    // const { showList, hiddenList } = this.filterCanDrawList(e)
-    let filterHiddenList = Array.from(new Set(this.hiddenList))
-
-
-
-    let showList = this.nowPhilData.reduce(function (pre, cur) {
-      if (filterHiddenList.every(item => item.id !== cur.id)) {
-        pre.push(cur)
-      }
-      return pre;
-    }, [])
-    // console.log(showList)
-    showList.forEach((phil) => {
-      const { originType, year, itemName, timeStr } = phil
+    canDrawEastData.forEach((phil) => {
+      const { canDraw, originType, year, itemName, timeStr } = phil
       const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
       const y = e.ruler.getYbyTime(year)
-      if (phil.canDraw == true) {
+      if (canDraw) {
         new Avatar({
           $html: this.$html,
           ctx: this.ctx,
@@ -79,6 +72,32 @@ export default class PhilTimebar {
         })
       }
     })
+    canDrawWestData.forEach((phil) => {
+      const { originType, year, itemName, timeStr } = phil
+      const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+      const y = e.ruler.getYbyTime(year)
+      if (phil.canDraw) {
+        new Avatar({
+          $html: this.$html,
+          ctx: this.ctx,
+          canvas: this.canvas,
+          originType,
+          philName: itemName,
+          born: timeStr,
+          x,
+          y
+        })
+      }
+    })
+
+    // let showList = this.nowPhilData.reduce(function (pre, cur) {
+    //   if (filterHiddenList.every(item => item.id !== cur.id)) {
+    //     pre.push(cur)
+    //   }
+    //   return pre;
+    // }, [])
+    // console.log(showList)
+
 
 
   }
@@ -109,8 +128,8 @@ export default class PhilTimebar {
    * @param {String} endTime 
    * @desc 根据当前屏幕起始年 过滤不需要显示的数据
    */
-  filterPhilData(startTime, endTime) {
-    return this.philData.filter(item => item.year > startTime || item.year < endTime).sort((m, n) => m.year - n.year)
+  filterWithInPhilData(data, startTime, endTime) {
+    return data.filter(item => item.year >= startTime && item.year <= endTime)
   }
   /**
    * 
@@ -128,7 +147,7 @@ export default class PhilTimebar {
    * @desc 获取东、西方哲学家 年份从小到大排序后的数据
    */
   getOriginData(origin) {
-    return this.nowPhilData.filter(item => item.originType === origin).sort((m, n) => m.year - n.year)
+    return this.philData.filter(item => item.originType === origin).sort((m, n) => m.importance - n.importance)
   }
   /**
    * @desc 寻找离当前圆心最近的圆圈
@@ -152,14 +171,14 @@ export default class PhilTimebar {
     const TEXT_HEIGHT = 40
     return y2 - y1 < CIRCLE_RADIUS * 2 + TEXT_HEIGHT
   }
-  compareImportance(a, b) {
+  getMajorElement(a, b) {
 
     if (a.importance < b.importance) {
-      return b
-    } else if (a.importance > b.importance) {
       return a
+    } else if (a.importance > b.importance) {
+      return b
     } else if (a.importance == b.importance) {
-      return this.getOlderPhil(a, b)
+      return this.getOlderPhil(a, b) || a // 返回年份较早的或自身
     }
 
 
@@ -172,58 +191,52 @@ export default class PhilTimebar {
     }
   }
 
-  filterCanDrawList(e) {
-    const { screenStartTime, screenEndTime } = e
-    const CIRCLE_DIAMETER = 130
-    // 获取一个圆在当前时间轴中占多少年
-    const gapYear = e.ruler.getTimeByPixel(CIRCLE_DIAMETER) - e.ruler.getTimeByPixel(0)
+  filterCanDrawList(e, data) {
 
-    this.nowPhilData.forEach((item, index) => {
-      let { originType, year, id } = item
+    const { ruler } = e
+    // 实时计算，当前一个哲学家节点在时间轴上覆盖多少年
+    const gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
+    let noCoinCideList = []
+    let coinCideList = []
+    data.forEach((element) => {
+      let { year, id, importance } = element
       // 遍历每一个节点，获取该节点的 x,y 信息
-      const y = e.ruler.getYbyTime(year)
+      const y = ruler.getYbyTime(year)
       const maxYear = year + gapYear
       const minYear = year - gapYear
-      // 默认都 canDraw
-      item.canDraw = true
-      // 重合节点列表
-      let coinCideList = []
 
-      // // 缩小检索范围：在当前元素上下溢出1个gapYear的才进行对比、非自己、同一orginType
-      let filtedData = this.nowPhilData.filter(item => item.originType === originType).filter(item => item.id !== id).filter(item => {
+      // 缩小检索范围，获取所有与当前节点有相交关系的其他节点
+      let coinCideElement = data.filter(item => item.id !== id).filter(item => {
         return minYear <= item.year && item.year <= maxYear
       })
-      for (let i = 0; i < filtedData.length; i++) {
-        const other = filtedData[i];
-        const otherY = e.ruler.getYbyTime(other.year)
-        // 当前节点与其他节点比对，查看两者是否有重合
-        const isCoinCide = year < filtedData[i].year ? this.checkIsCoinCide(y, otherY) : this.checkIsCoinCide(otherY, y)
-        if (isCoinCide) {
-          // 如果两者有重合，不同级别优先显示优先级高的节点，同级节点优先显示年份较早的节点
-          let hiddenItem = this.compareImportance(other, item)
-          if (hiddenItem) {
-            coinCideList.push(hiddenItem)
-            hiddenItem.canDraw = false
-          }
-        }
-      }
-      // console.log(coinCideList)
-      if (!coinCideList.length) {
-        const nowItem = item
-        // console.log(`${nowItem.itemName}与任何相邻节点没有重合关系`)
-        // 如果当前节点与任何节点都没有重合关系，需要判断所有大于他优先级的 节点都 canDraw为 true 的情况下，才能设置 canDraw 为 true
-        const moreImportanceList = this.nowPhilData.filter((item) => item.importance < nowItem.importance)
-        const nowItemCanDraw = moreImportanceList.every((item) => item.canDraw == true)
-        if (nowItemCanDraw) {
-          nowItem.canDraw = true
+      if (coinCideElement && coinCideElement.length) {
+        let tempList = []
+        coinCideElement.forEach((subItem) => {
+          let major = this.getMajorElement(element, subItem)
+          tempList.push(major)
+        })
+        if (tempList.every(tempItem => tempItem.id == id)) {
+          // 这里有 bug
+          element.canDraw = true
         } else {
-          nowItem.canDraw = false
+          element.canDraw = false
         }
       } else {
-        this.hiddenList = this.hiddenList.concat(coinCideList)
-        // console.log(`${item.itemName}有重合关系的是`)
-        // console.log(coinCideList)
+        // 如果不存在相邻重合节点
+        noCoinCideList.push(element)
       }
     })
+    if (noCoinCideList && noCoinCideList.length) {
+      noCoinCideList.forEach((noCoinItem) => {
+        const index = data.findIndex((item) => item.id == noCoinItem.id)
+        let hasMoreImportantElement = data.find(item => item.importance < noCoinItem.importance && !item.candraw)
+        if (hasMoreImportantElement) {
+          data[index].canDraw = false
+        } else {
+          data[index].canDraw = true
+        }
+      })
+    }
+    return data
   }
 }
