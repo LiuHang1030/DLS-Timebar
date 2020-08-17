@@ -49,8 +49,11 @@ export default class PhilTimebar {
     let eastData = this.getOriginData('EAST')
     let westData = this.getOriginData('WEST')
     // 筛选出所有当前轴起止年范围内的哲学家
-    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime - this.gapYear * 2, screenEndTime + this.gapYear * 2)
-    let withInWestData = this.filterWithInPhilData(westData, screenStartTime - this.gapYear * 2, screenEndTime + this.gapYear * 2)
+
+    console.log(screenStartTime - oneScreenTime)
+    console.log(oneScreenTime + screenEndTime)
+    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime - oneScreenTime, oneScreenTime + screenEndTime)
+    let withInWestData = this.filterWithInPhilData(westData, screenStartTime - oneScreenTime, oneScreenTime + screenEndTime)
     // 根据当前范围内哲学家，比较优先级筛选出可渲染哲学家数据
     let canDrawEastData = this.filterCanDrawList(e, withInEastData)
     let canDrawWestData = this.filterCanDrawList(e, withInWestData)
@@ -180,16 +183,20 @@ export default class PhilTimebar {
     } else if (a.importance > b.importance) {
       return b
     } else if (a.importance == b.importance) {
-      return this.getOlderPhil(a, b) || b // 返回年份较早的或自身
+      // console.log('marjorElement')
+      // console.log(a)
+      // console.log(b)
+      // console.log(this.getOlderPhil(a, b))
+      return this.getOlderPhil(a, b) || a// 返回年份较早的或自身
     }
 
 
   }
   getOlderPhil(a, b) {
     if (a.year < b.year) {
-      return b
-    } else if (a.year > b.year) {
       return a
+    } else if (a.year > b.year) {
+      return b
     }
   }
 
@@ -280,7 +287,8 @@ export default class PhilTimebar {
     // return data.filter(item => item.canDraw)
     let { ruler } = e
     let needCheckList = []
-
+    console.log('可展示数据')
+    console.log(data)
     data.forEach((element) => {
       let { year, id, importance } = element
       // 遍历每一个节点，获取该节点的 x,y 信息
@@ -292,17 +300,21 @@ export default class PhilTimebar {
       let coinCideElement = data.filter(item => item.id !== id).filter(item => {
         return minYear <= item.year && item.year <= maxYear
       })
-
-      // console.log(element.itemName)
-      // console.log(coinCideElement)
+      
       if (coinCideElement && coinCideElement.length) {
+        // console.log(element.itemName)
+        // console.log(coinCideElement)
         let tempList = []
         coinCideElement.forEach((subItem) => {
           let major = this.getMajorElement(element, subItem)
           tempList.push(major)
         })
         // console.log(tempList)
+        // console.log(tempList)
+        // console.log('比较优先级')
+        // console.log(tempList.filter(item => item.importance < importance))
         if (tempList.every(tempItem => tempItem.id == id)) {
+          // 如果每一个tempList优先级最高的都是自己，或者比自己优先级高的节点canDraw是true
           // 这里有 bug
           element.canDraw = true
           // needCheckList.push(element)
@@ -311,9 +323,19 @@ export default class PhilTimebar {
         }
       } else {
         // 如果不存在相邻重合节点
-        needCheckList.push(element)
+        console.log('如果不存在相邻重合节点')
+        console.log(element)
+        console.log(data.filter(item => item.importance < importance))
+        if(data.filter(item => item.importance < importance).every(item => item.canDraw)){
+          element.canDraw = true
+        }else{
+          element.canDraw = false
+        }
+        // needCheckList.push(element)
       }
     })
+    console.log('needCheckList')
+    console.log(needCheckList)
     if (needCheckList && needCheckList.length) {
       needCheckList.forEach(noCoinItem => {
         const index = data.findIndex((item) => item.id == noCoinItem.id)
@@ -325,8 +347,8 @@ export default class PhilTimebar {
         }
       })
     }
-    // console.log(data)
-    // console.log(data.filter(item => item.canDraw))
+    console.log('filted')
+    console.log(data.filter(item => item.canDraw))
     return data.filter(item => item.canDraw)
   }
 }
