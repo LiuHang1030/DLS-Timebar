@@ -49,11 +49,11 @@ export default class PhilTimebar {
     let eastData = this.getOriginData('EAST')
     let westData = this.getOriginData('WEST')
     // 筛选出所有当前轴起止年范围内的哲学家
-
-    console.log(screenStartTime - oneScreenTime)
-    console.log(oneScreenTime + screenEndTime)
-    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime - oneScreenTime, oneScreenTime + screenEndTime)
-    let withInWestData = this.filterWithInPhilData(westData, screenStartTime - oneScreenTime, oneScreenTime + screenEndTime)
+    console.log(oneScreenTime)
+    console.log(screenStartTime - oneScreenTime /2)
+    console.log(oneScreenTime/2 + screenEndTime)
+    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime - (oneScreenTime /2), oneScreenTime/2 + screenEndTime)
+    let withInWestData = this.filterWithInPhilData(westData, screenStartTime -( oneScreenTime /2), oneScreenTime/2 + screenEndTime)
     // 根据当前范围内哲学家，比较优先级筛选出可渲染哲学家数据
     let canDrawEastData = this.filterCanDrawList(e, withInEastData)
     let canDrawWestData = this.filterCanDrawList(e, withInWestData)
@@ -326,7 +326,7 @@ export default class PhilTimebar {
         console.log('如果不存在相邻重合节点')
         console.log(element)
         console.log(data.filter(item => item.importance < importance))
-        if(data.filter(item => item.importance < importance).every(item => item.canDraw)){
+        if(data.filter(item => item.importance < importance) && data.filter(item => item.importance < importance).every(item => item.canDraw)){
           element.canDraw = true
         }else{
           element.canDraw = false
