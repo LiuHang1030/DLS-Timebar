@@ -13,7 +13,7 @@ export default class PhilTimebar {
       philData: [], // 分期数据
       nowPhilData: [], // 现在可显示的哲学家数据
       nowPeriodData: [], // 现在可显示的分期数据
-      CIRCLE_DIAMETER: 150,
+      CIRCLE_DIAMETER: 100,
     }, props)
 
     this.initial()
@@ -49,11 +49,8 @@ export default class PhilTimebar {
     let eastData = this.getOriginData('EAST')
     let westData = this.getOriginData('WEST')
     // 筛选出所有当前轴起止年范围内的哲学家
-    console.log(oneScreenTime)
-    console.log(screenStartTime - oneScreenTime /2)
-    console.log(oneScreenTime/2 + screenEndTime)
-    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime - (oneScreenTime /2), oneScreenTime/2 + screenEndTime)
-    let withInWestData = this.filterWithInPhilData(westData, screenStartTime -( oneScreenTime /2), oneScreenTime/2 + screenEndTime)
+    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime, screenEndTime)
+    let withInWestData = this.filterWithInPhilData(westData, screenStartTime, screenEndTime)
     // 根据当前范围内哲学家，比较优先级筛选出可渲染哲学家数据
     let canDrawEastData = this.filterCanDrawList(e, withInEastData)
     let canDrawWestData = this.filterCanDrawList(e, withInWestData)
@@ -134,7 +131,9 @@ export default class PhilTimebar {
    * @desc 根据当前屏幕起始年 过滤不需要显示的数据
    */
   filterWithInPhilData(data, startTime, endTime) {
-    return data.filter(item => item.year >= startTime && item.year <= endTime)
+    // 上下溢出一部分
+    const oneScreenTime = endTime - startTime
+    return data.filter(item => item.year >= parseInt(startTime - oneScreenTime) && item.year <= (parseInt(endTime + oneScreenTime)))
   }
   /**
    * 
@@ -300,7 +299,7 @@ export default class PhilTimebar {
       let coinCideElement = data.filter(item => item.id !== id).filter(item => {
         return minYear <= item.year && item.year <= maxYear
       })
-      
+
       if (coinCideElement && coinCideElement.length) {
         // console.log(element.itemName)
         // console.log(coinCideElement)
@@ -325,10 +324,10 @@ export default class PhilTimebar {
         // 如果不存在相邻重合节点
         console.log('如果不存在相邻重合节点')
         console.log(element)
-        console.log(data.filter(item => item.importance < importance))
-        if(data.filter(item => item.importance < importance) && data.filter(item => item.importance < importance).every(item => item.canDraw)){
+        if ((data.filter(item => item.importance < importance) && data.filter(item => item.importance < importance).every(item => item.canDraw)) || !data.filter(item => item.importance < importance).length) {
+          // 如果存在优先级比当前节点高，但是 canDraw 为 true 或者不存在任何优先级高的节点时，将该不存在相邻重合节点canDraw标记为 true
           element.canDraw = true
-        }else{
+        } else {
           element.canDraw = false
         }
         // needCheckList.push(element)

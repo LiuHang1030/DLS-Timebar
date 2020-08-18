@@ -114,10 +114,12 @@ export default class Timebar {
   }
   createCanvas() {
     this.$html = $(document.createElement('div'))
+
     this.$html.attr('class', 'dls-timebar-box')
     this.canvas = document.createElement('canvas');
 
     this.$html.append(this.canvas)
+
 
     this.ctx = this.canvas.getContext('2d');
     this.container.appendChild(this.$html[0]);
@@ -735,8 +737,89 @@ export default class Timebar {
     this.$html.toggleClass('hover', false)
   }
 
+  _touchstart(e) {
+    var touches = e.originalEvent.targetTouches;
 
+    var events = touches[0];
+    var events2 = touches[1];
+    this.isMousedown = true;
+    this.mousedownPos = {
+      x: events.clientX,
+      y: events.clientY
+    };
+    this.downTranslate = {
+      ...this.translate
+    };
+    if (events2) {
+      this.mousedownPos = {
+        x: events.clientX,
+        y: events.clientY,
+        x2: events2.clientX,
+        y2: events2.clientY,
+      };
+    }
 
+  }
+  _touchmove(e) {
+    // e.preventDefault();
+
+    var touches = e.originalEvent.targetTouches;
+
+    var events = touches[0];
+    var events2 = touches[1];
+
+    if (events) {
+      // 单指操作
+      this.mousePos.x = events.clientX;
+      this.mousePos.y = events.clientY;
+      if (this.mousedownPos) {
+        if (!this.draggable) {
+          return;
+        }
+        let delatY = this.mousePos.y - this.mousedownPos.y;
+
+        let newY = this.downTranslate.y + delatY;
+
+        /**
+         * 超出边界的处理
+         */
+        this._fixOverFlowTranslate(newY)
+        this.updateBufferYears();
+        this.render();
+        this.onChange(this);
+      }
+    }
+
+    if (events2) {
+      // 双指操作
+      var zoom = this.getDistance({
+        x: events.pageX,
+        y: events.pageY
+      }, {
+        x: events2.pageX,
+        y: events2.pageY
+      }) /
+        this.getDistance({
+          x: this.mousedownPos.x,
+          y: this.mousedownPos.y
+        }, {
+          x: this.mousedownPos.x2,
+          y: this.mousedownPos.y2
+        });
+      this.$html.find('p').html(`${zoom}`)
+      if (zoom < 1) {
+        this._zoom(-this.zoomSpeed);
+      } else {
+        this._zoom(this.zoomSpeed);
+      }
+    }
+  }
+  _touchend(e) {
+
+  }
+  getDistance(start, stop) {
+    return Math.hypot(stop.x - start.x, stop.y - start.y);
+  }
   bind() {
 
     $(window).on('resize.timebar', this._resize.bind(this))
@@ -745,13 +828,17 @@ export default class Timebar {
 
 
     let mouseEventDom = $(window);
-
+    let toucheEventDom = $('#timebar')
 
 
     mouseEventDom.on('mousewheel', this._mouseWheel.bind(this))
     mouseEventDom.on('mousedown', this._mousedown.bind(this))
     mouseEventDom.on('mouseenter', this._mouseenter.bind(this))
     mouseEventDom.on('mouseleave', this._mouseleave.bind(this))
+
+    toucheEventDom.on('touchstart', this._touchstart.bind(this))
+    toucheEventDom.on('touchmove', this._touchmove.bind(this))
+    toucheEventDom.on('touchend', this._touchend.bind(this))
   }
 
 }

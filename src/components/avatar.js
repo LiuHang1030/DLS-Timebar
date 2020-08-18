@@ -13,7 +13,7 @@ export default class Avatar {
       philId: '',
       philName: '',
       born: '',
-      size: 50
+      size: 25
     }, props)
 
 
@@ -29,7 +29,7 @@ export default class Avatar {
   }
   drawCircle(x, y) {
     this.ctx.beginPath();
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = 2;
     this.ctx.fillStyle = '#fff'
     this.ctx.strokeStyle = "#a0365b"
     this.ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
