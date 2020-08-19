@@ -33,6 +33,8 @@ export default class PhilTimebar {
         this.drawQuote(e)
       }
     })
+    // this.ruler.setTimeByOffset(-800, 2000, 0.5)
+
   }
   initial() {
     const { canvas, ctx, $html } = new Canvas()
@@ -71,6 +73,7 @@ export default class PhilTimebar {
     // tab栏进行东西方哲学家筛选功能
     const { ruler, screenStartTime, screenEndTime } = e
     const oneScreenTime = screenEndTime - screenStartTime
+
     this.centerPx = e.ruler.centerPx
     this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
     // 将数据分为东西方两类
@@ -119,7 +122,6 @@ export default class PhilTimebar {
     //       y
     //     })
     //   }
-
     // })
 
     // let showList = this.nowPhilData.reduce(function (pre, cur) {

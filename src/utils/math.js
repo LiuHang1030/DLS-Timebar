@@ -22,7 +22,7 @@ export default {
      * 如果手动设置宽度，则使用手动设置的值 _selectWidth
      */
     let selectedWidth = endOffset + startOffset;
-    if(_selectWidth){
+    if (_selectWidth) {
       selectedWidth = _selectWidth;
     }
 
@@ -30,14 +30,11 @@ export default {
      * 获取选中区域时间跨度
      */
     let selectedDuration = end - start;
-
     /**
      * 计算初始时间，选中区域时间跨度
      */
     let startUnitNumber = selectedWidth / timebar.startUnitWidth;
-
     let startDuration = startUnitNumber * timebar.startUnitTime;
-
     /**
      * 计算缩放倍数, ratio = 2;
      * D = d * 2 ** n
