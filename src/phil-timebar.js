@@ -14,6 +14,8 @@ export default class PhilTimebar {
       nowPhilData: [], // 现在可显示的哲学家数据
       nowPeriodData: [], // 现在可显示的分期数据
       CIRCLE_DIAMETER: 100,
+      minYear: -800,
+      maxYear: new Date().getFullYear()
     }, props)
 
     this.initial()
@@ -37,8 +39,34 @@ export default class PhilTimebar {
     this.canvas = canvas
     this.ctx = ctx
     this.$html = $html
+    this.calculatePhilData()
   }
+  calculatePhilData() {
+    // 哲学家优先级一共分为1.1、1.2、2、3  四种
+    var level1Data = this.getLevelData(1.1)
+    var level2Data = this.getLevelData(1.2)
+    var level3Data = this.getLevelData(2)
+    var level4Data = this.getLevelData(3)
 
+
+
+    console.log(level1Data[level1Data.length - 1])
+    console.log(this.getAssessData(level1Data))
+  }
+  getLevelData(level) {
+    return this.philData.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
+  }
+  getAssessData(levelData) {
+    // return 东西方同级别应该以哪一方作为绘制时间轴参考标准
+    let eastData = this.getOriginData(levelData, 'EAST')
+    let westData = this.getOriginData(levelData, 'WEST')
+    let eastLast = eastData.length - 1
+    let westLast = westData.length - 1
+
+    console.log(eastData)
+    console.log(westData)
+
+  }
   drawAvatar(e) {
     // tab栏进行东西方哲学家筛选功能
     const { ruler, screenStartTime, screenEndTime } = e
@@ -46,51 +74,53 @@ export default class PhilTimebar {
     this.centerPx = e.ruler.centerPx
     this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
     // 将数据分为东西方两类
-    let eastData = this.getOriginData('EAST')
-    let westData = this.getOriginData('WEST')
+
     // 筛选出所有当前轴起止年范围内的哲学家
-    let withInEastData = this.filterWithInPhilData(eastData, screenStartTime, screenEndTime)
-    let withInWestData = this.filterWithInPhilData(westData, screenStartTime, screenEndTime)
+    // let withInEastData = this.filterWithInPhilData(eastData, screenStartTime, screenEndTime)
+    // let withInWestData = this.filterWithInPhilData(westData, screenStartTime, screenEndTime)
+    // console.log(withInEastData)
+    // console.log(withInWestData)
     // 根据当前范围内哲学家，比较优先级筛选出可渲染哲学家数据
-    let canDrawEastData = this.filterCanDrawList(e, withInEastData)
-    let canDrawWestData = this.filterCanDrawList(e, withInWestData)
+    // let canDrawEastData = this.filterCanDrawList(e, eastData)
+    // let canDrawWestData = this.filterCanDrawList(e, westData)
 
-    canDrawEastData.forEach((phil) => {
-      const { originType, year, itemName, timeStr } = phil
-      const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-      const y = e.ruler.getYbyTime(year)
 
-      if (phil.canDraw && phil.canDraw !== 'DISABLE') {
-        new Avatar({
-          $html: this.$html,
-          ctx: this.ctx,
-          canvas: this.canvas,
-          originType,
-          philName: itemName,
-          born: timeStr,
-          x,
-          y
-        })
-      }
-    })
-    canDrawWestData.forEach((phil) => {
-      const { originType, year, itemName, timeStr } = phil
-      const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-      const y = e.ruler.getYbyTime(year)
-      if (phil.canDraw && phil.canDraw !== 'DISABLE') {
-        new Avatar({
-          $html: this.$html,
-          ctx: this.ctx,
-          canvas: this.canvas,
-          originType,
-          philName: itemName,
-          born: timeStr,
-          x,
-          y
-        })
-      }
+    // canDrawEastData.forEach((phil) => {
+    //   const { originType, year, itemName, timeStr } = phil
+    //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+    //   const y = e.ruler.getYbyTime(year)
 
-    })
+    //   if (phil.canDraw && phil.canDraw !== 'DISABLE') {
+    //     new Avatar({
+    //       $html: this.$html,
+    //       ctx: this.ctx,
+    //       canvas: this.canvas,
+    //       originType,
+    //       philName: itemName,
+    //       born: timeStr,
+    //       x,
+    //       y
+    //     })
+    //   }
+    // })
+    // canDrawWestData.forEach((phil) => {
+    //   const { originType, year, itemName, timeStr } = phil
+    //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+    //   const y = e.ruler.getYbyTime(year)
+    //   if (phil.canDraw && phil.canDraw !== 'DISABLE') {
+    //     new Avatar({
+    //       $html: this.$html,
+    //       ctx: this.ctx,
+    //       canvas: this.canvas,
+    //       originType,
+    //       philName: itemName,
+    //       born: timeStr,
+    //       x,
+    //       y
+    //     })
+    //   }
+
+    // })
 
     // let showList = this.nowPhilData.reduce(function (pre, cur) {
     //   if (filterHiddenList.every(item => item.id !== cur.id)) {
@@ -150,8 +180,8 @@ export default class PhilTimebar {
    * @param {String} origin EAST OR WEST
    * @desc 获取东、西方哲学家 年份从小到大排序后的数据
    */
-  getOriginData(origin) {
-    return this.philData.filter(item => item.originType === origin).sort((m, n) => m.year - n.year)
+  getOriginData(levelData, origin) {
+    return levelData.filter(item => item.originType === origin)
   }
   /**
    * @desc 寻找离当前圆心最近的圆圈
@@ -201,153 +231,5 @@ export default class PhilTimebar {
 
   filterCanDrawList(e, data) {
 
-    // const { ruler } = e
-    // // 实时计算，当前一个哲学家节点在时间轴上覆盖多少年
-
-
-    // let needCheckList = []
-    // console.log(data)
-    // // 自上而下，遍历所有东、西方哲学家节点，两两比较那个优先级更大
-    // for (let index = 0; index < data.length; index++) {
-    //   const nowElement = data[index];
-    //   nowElement.canDraw = false
-
-    //   const nextElement = data[index + 1] || undefined
-
-
-    //   const { year, id, importance } = nowElement
-
-    //   if (nextElement) {
-    //     // 如果当前节点下面存在节点，则检查是否是重合关系
-    //     // 判定条件为下一个节点是否在当前节点顶点到当前节点圆心 + 一个圆直径的范围内。
-
-    //     const nextYear = nextElement.year
-    //     const minYear = year - (this.gapYear / 2)
-    //     const maxYear = year + this.gapYear
-
-
-    //     if (minYear <= nextYear && nextYear <= maxYear) {
-    //       // 有重合关系
-
-    //       let major = this.getMajorElement(nowElement, nextElement)
-    //       if (major.itemId == nowElement.itemId) {
-    //         // 只负责控制当前节点是否显示
-    //         needCheckList.push(major)
-    //       }
-    //       console.log('有重合关系')
-    //       console.log(nowElement)
-    //       console.log(nextElement)
-    //       console.log('胜出')
-    //       console.log(major)
-    //     } else {
-    //       // 不存在重合关系
-    //       needCheckList.push(nowElement)
-    //     }
-    //   }
-    //   else {
-    //     // 如果是最后一个节点、或者只有一个节点时候
-    //     needCheckList.push(nowElement)
-    //   }
-    // }
-    // console.log('needCheckList')
-    // needCheckList = needCheckList.sort((m, n) => (m.importance - n.importance))
-    // console.log(needCheckList)
-    // // 再次遍历一遍，保证优先级低但是无重合的元素，不被优先显示
-    // for (let index = 0; index < needCheckList.length; index++) {
-    //   const nowElement = needCheckList[index];
-    //   const { year } = nowElement
-
-    //   if (index == 0) {
-    //     nowElement.canDraw = true
-    //   } else {
-    //     // 第二个开始每一个与上一个节点比较
-    //     const prevElement = needCheckList[index - 1]
-    //     const minYear = year - (this.gapYear / 2)
-    //     const maxYear = year + this.gapYear
-    //     if (minYear <= prevElement.year && prevElement.year <= maxYear) {
-    //       // 与上一个有重合
-    //       console.log(`${nowElement.itemName}和${prevElement.itemName}有重合`)
-    //       nowElement.canDraw = false
-    //     } else {
-    //       console.log(`${nowElement.itemName}和${prevElement.itemName}没重合`)
-    //       nowElement.canDraw = true
-    //     }
-    //   }
-    // 判断是否存在当前视窗内是否存在优先级比当前节点高，但是还没有被显示的节点，如果存在，隐藏当前节点。
-    // const largerElement = data.filter(item => item.id !== nowElement.id).filter(item => item.importance < nowElement.importance).filter(item => !item.canDraw)
-
-    // if (largerElement && largerElement.length) {
-    //   // 如果存在比当前元素优先级高并且不可 draw 的情况下，隐藏该节点
-    //   nowElement.canDraw = false
-    // } else {
-    //   nowElement.canDraw = true
-    // }
-    // }
-    // return data.filter(item => item.canDraw)
-    let { ruler } = e
-    let needCheckList = []
-    console.log('可展示数据')
-    console.log(data)
-    data.forEach((element) => {
-      let { year, id, importance } = element
-      // 遍历每一个节点，获取该节点的 x,y 信息
-      const y = ruler.getYbyTime(year)
-      const maxYear = year + this.gapYear
-      const minYear = year - this.gapYear
-
-      // 缩小检索范围，获取所有与当前节点有相交关系的其他节点
-      let coinCideElement = data.filter(item => item.id !== id).filter(item => {
-        return minYear <= item.year && item.year <= maxYear
-      })
-
-      if (coinCideElement && coinCideElement.length) {
-        // console.log(element.itemName)
-        // console.log(coinCideElement)
-        let tempList = []
-        coinCideElement.forEach((subItem) => {
-          let major = this.getMajorElement(element, subItem)
-          tempList.push(major)
-        })
-        // console.log(tempList)
-        // console.log(tempList)
-        // console.log('比较优先级')
-        // console.log(tempList.filter(item => item.importance < importance))
-        if (tempList.every(tempItem => tempItem.id == id)) {
-          // 如果每一个tempList优先级最高的都是自己，或者比自己优先级高的节点canDraw是true
-          // 这里有 bug
-          element.canDraw = true
-          // needCheckList.push(element)
-        } else {
-          element.canDraw = false
-        }
-      } else {
-        // 如果不存在相邻重合节点
-        console.log('如果不存在相邻重合节点')
-        console.log(element)
-        if ((data.filter(item => item.importance < importance) && data.filter(item => item.importance < importance).every(item => item.canDraw)) || !data.filter(item => item.importance < importance).length) {
-          // 如果存在优先级比当前节点高，但是 canDraw 为 true 或者不存在任何优先级高的节点时，将该不存在相邻重合节点canDraw标记为 true
-          element.canDraw = true
-        } else {
-          element.canDraw = false
-        }
-        // needCheckList.push(element)
-      }
-    })
-    console.log('needCheckList')
-    console.log(needCheckList)
-    if (needCheckList && needCheckList.length) {
-      needCheckList.forEach(noCoinItem => {
-        const index = data.findIndex((item) => item.id == noCoinItem.id)
-        let hasMoreImportantElement = data.find(item => (item.importance < noCoinItem.importance && !item.canDraw))
-        if (hasMoreImportantElement) {
-          data[index].canDraw = false
-        } else {
-          data[index].canDraw = true
-        }
-      })
-    }
-    console.log('filted')
-    console.log(data.filter(item => item.canDraw))
-    return data.filter(item => item.canDraw)
   }
 }
