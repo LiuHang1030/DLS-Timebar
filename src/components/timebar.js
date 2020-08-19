@@ -10,6 +10,8 @@ import {
   Power0
 } from 'gsap';
 
+
+
 export default class Timebar {
   constructor(props) {
     Object.assign(this, {
@@ -93,7 +95,6 @@ export default class Timebar {
 
 
 
-
     /**
      * 兼容IOS
      */
@@ -109,6 +110,7 @@ export default class Timebar {
     this.updateBufferYears();
     this.render();
     this.bind();
+
 
 
   }
@@ -163,6 +165,7 @@ export default class Timebar {
    * 更新当前状态总宽度
    */
   updateTotalWidth() {
+
     this.totalWidth = this.unitWidth * ((this.maxYear - this.minYear) / this.unitTime);
   }
 
@@ -484,7 +487,8 @@ export default class Timebar {
       newUnitTime,
       newUnitWidth
     } = timeMath.calcUnitBySelectedOffset(this, startTime, endTime);
-
+    console.log(newUnitTime)
+    console.log(newUnitWidth)
     this._zoomToSelectedOffset(startTime, endTime, newUnitTime, newUnitWidth, animate, cb)
 
 
@@ -537,13 +541,13 @@ export default class Timebar {
     let targetCenterTime = startTime + (endTime - startTime) / 2;
     let currentCenterTime = this.getTimeByPixel(this.centerHeight);
     let centerTimeDelta = targetCenterTime - currentCenterTime;
-
     TweenLite.to(this, animate, {
       ease: Power0.easeNone,
       unitTime,
       unitWidth,
-      onUpdateParams: ['{ self }'],
-      onUpdate: tn => {
+      onUpdateParams: ["{self}"],
+      onUpdate: (tn) => {
+
         let animateProcess = tn.progress();
         let centerTime = centerTimeDelta * animateProcess + currentCenterTime;
         this.updateTotalWidth();
@@ -574,6 +578,9 @@ export default class Timebar {
     let newUnitWidth = this.unitWidth;
     let newUnitTime = this.unitTime;
     newUnitWidth += delta;
+
+
+
 
 
     /**
@@ -631,7 +638,10 @@ export default class Timebar {
      * 更新总长度
      */
     this.updateTotalWidth();
-
+    console.log('一个刻度占的长度' + this.unitWidth)
+    console.log('一个刻度代表的时间间隔' + this.unitTime)
+    console.log('400BC 的 Y' + this.getYbyTime(-400))
+    console.log(150 / this.totalWidth)
     this.setCenterByTime(centerTime);
     this._fixOverFlowTranslate(this.translate.y);
 
