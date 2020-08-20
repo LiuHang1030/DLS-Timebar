@@ -4,6 +4,7 @@ import Avatar from './components/avatar'
 import Quote from './components/quote'
 // import Controller from './components/controller'
 import Period from './components/period'
+import { mock } from 'mockjs'
 
 
 export default class PhilTimebar {
@@ -13,9 +14,13 @@ export default class PhilTimebar {
       philData: [], // 分期数据
       nowPhilData: [], // 现在可显示的哲学家数据
       nowPeriodData: [], // 现在可显示的分期数据
-      CIRCLE_DIAMETER: 100,
+      CIRCLE_DIAMETER: 100, // 
       minYear: -800,
-      maxYear: new Date().getFullYear()
+      maxYear: new Date().getFullYear(),
+      unitTime: [40, 20, 10, 5, 2, 1],
+      minUnitWidth: 16,
+      maxUnitWidth: 32,
+      unitWidth: 16
     }, props)
 
     this.initial()
@@ -24,6 +29,12 @@ export default class PhilTimebar {
       $html: this.$html,
       canvas: this.canvas,
       ctx: this.ctx,
+      minYear: this.minYear,
+      maxYear: this.maxYear,
+      unitTime: 40,
+      minUnitWidth: this.minUnitWidth,
+      maxUnitWidth: this.maxUnitWidth,
+      unitWidth: this.unitWidth,
       onRender: (e) => {
         const { screenStartTime, screenEndTime } = e
         // this.nowPhilData = this.filterWithInPhilData(screenStartTime, screenEndTime)
@@ -33,16 +44,38 @@ export default class PhilTimebar {
         this.drawQuote(e)
       }
     })
-    this.
     // this.ruler.setTimeByOffset(-800, 2000, 0.5)
+    // let totalHeight = (this.maxYear - this.minYear) / 40 * 16
+    // let totalTime = this.maxYear - this.minYear
+    // let percent = (time - this.minYear) / totalTime / totalHeight
+    this.totalTime = this.maxYear - this.minYear;
+    this.mockData = this.createMockData()
+    this.calculatePhilData()
+  }
+  createMockData() {
+    let mockData = []
 
+    for (let index = 0; index < this.unitTime.length; index++) {
+
+      let list = []
+      let begin = this.minUnitWidth
+      let end = this.maxUnitWidth
+      let delta = 0.5
+
+      while (begin <= end) {
+        list.push(begin)
+        begin += delta
+      }
+      mockData.push(list)
+    }
+    return mockData
   }
   initial() {
     const { canvas, ctx, $html } = new Canvas()
     this.canvas = canvas
     this.ctx = ctx
     this.$html = $html
-    this.calculatePhilData()
+
   }
   calculatePhilData() {
     // 哲学家优先级一共分为1.1、1.2、2、3  四种
@@ -52,9 +85,61 @@ export default class PhilTimebar {
     var level4Data = this.getLevelData(3)
 
 
+    this.mockData.forEach((item, index) => {
+      const gaps = item;
+      const scale = this.unitTime[index]
+
+      gaps.forEach(gap => {
+        this.totalHeight = (this.maxYear - this.minYear) / scale * gap
+        // 从优先级最高的节点数组开始模拟渲染，如该优先级节点的 canDraw 属性全部为 true,开始遍历下一个优先级节点列表
+        var level1Finished = level1Data.every(item => item.canDraw)
+        var level2Finished = level2Data.every(item => item.canDraw)
+        var level3Finished = level3Data.every(item => item.canDraw)
+        var level4Finished = level4Data.every(item => item.canDraw)
+
+        if (!level1Finished) {
+          // 如果 level1 没有完成
+          level1Data.forEach(phil => {
+            const { year, itemId, itemName } = phil
+
+            const y = parseInt(this.getYbyTime(year))
+            const minY = y - this.CIRCLE_DIAMETER
+            const maxY = y + this.CIRCLE_DIAMETER
+            let hasCoinCideElement = level1Data.filter(item => item.itemId !== itemId).filter(item => (minY <= this.getYbyTime(item.year) && this.getYbyTime(item.year) <= maxY))
+
+            if (!phil.zoom) {
+              if (hasCoinCideElement.length) {
+                // do nothing
+              } else {
+                // 如果不存在
+                phil.canDraw = true
+                phil.zoom = this.CIRCLE_DIAMETER / this.totalHeight
+                console.log(phil)
+              }
+            }
 
 
 
+          })
+          console.log(level1Data.filter(item => !item.canDraw))
+        } else if (!level2Finished) {
+          console.log('跳到 level2')
+          console.log(level1Data)
+          // 如果 level2 没有完成
+        } else if (!level3Finished) {
+          // 如果 level3 没有完成
+        } else if (!level4Finished) {
+          // 如果 level4 没有完成
+        } else {
+          // 所有 level 都完成模拟
+          return;
+        }
+      })
+    })
+  }
+  getYbyTime(time) {
+    let percent = (time - this.minYear) / this.totalTime;
+    return percent * this.totalHeight;
   }
   getLevelData(level) {
     return this.philData.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
