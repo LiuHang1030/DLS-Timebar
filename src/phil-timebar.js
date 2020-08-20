@@ -44,6 +44,7 @@ export default class PhilTimebar {
         this.drawQuote(e)
       }
     })
+    console.log('测试多仓库')
     // this.ruler.setTimeByOffset(-800, 2000, 0.5)
     // let totalHeight = (this.maxYear - this.minYear) / 40 * 16
     // let totalTime = this.maxYear - this.minYear
