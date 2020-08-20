@@ -33,6 +33,7 @@ export default class PhilTimebar {
         this.drawQuote(e)
       }
     })
+    this.
     // this.ruler.setTimeByOffset(-800, 2000, 0.5)
 
   }
@@ -52,23 +53,13 @@ export default class PhilTimebar {
 
 
 
-    console.log(level1Data[level1Data.length - 1])
-    console.log(this.getAssessData(level1Data))
+
+
   }
   getLevelData(level) {
     return this.philData.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
   }
-  getAssessData(levelData) {
-    // return 东西方同级别应该以哪一方作为绘制时间轴参考标准
-    let eastData = this.getOriginData(levelData, 'EAST')
-    let westData = this.getOriginData(levelData, 'WEST')
-    let eastLast = eastData.length - 1
-    let westLast = westData.length - 1
 
-    console.log(eastData)
-    console.log(westData)
-
-  }
   drawAvatar(e) {
     // tab栏进行东西方哲学家筛选功能
     const { ruler, screenStartTime, screenEndTime } = e
@@ -214,10 +205,6 @@ export default class PhilTimebar {
     } else if (a.importance > b.importance) {
       return b
     } else if (a.importance == b.importance) {
-      // console.log('marjorElement')
-      // console.log(a)
-      // console.log(b)
-      // console.log(this.getOlderPhil(a, b))
       return this.getOlderPhil(a, b) || a// 返回年份较早的或自身
     }
 

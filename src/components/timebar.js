@@ -487,8 +487,8 @@ export default class Timebar {
       newUnitTime,
       newUnitWidth
     } = timeMath.calcUnitBySelectedOffset(this, startTime, endTime);
-    console.log(newUnitTime)
-    console.log(newUnitWidth)
+    // console.log(newUnitTime)
+    // console.log(newUnitWidth)
     this._zoomToSelectedOffset(startTime, endTime, newUnitTime, newUnitWidth, animate, cb)
 
 
@@ -638,10 +638,6 @@ export default class Timebar {
      * 更新总长度
      */
     this.updateTotalWidth();
-    console.log('一个刻度占的长度' + this.unitWidth)
-    console.log('一个刻度代表的时间间隔' + this.unitTime)
-    console.log('400BC 的 Y' + this.getYbyTime(-400))
-    console.log(150 / this.totalWidth)
     this.setCenterByTime(centerTime);
     this._fixOverFlowTranslate(this.translate.y);
 
