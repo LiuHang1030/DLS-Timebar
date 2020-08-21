@@ -93,43 +93,51 @@ export default class PhilTimebar {
       gaps.forEach(gap => {
         this.totalHeight = (this.maxYear - this.minYear) / scale * gap
         // 从优先级最高的节点数组开始模拟渲染，如该优先级节点的 canDraw 属性全部为 true,开始遍历下一个优先级节点列表
-        var level1Finished = level1Data.every(item => item.canDraw)
-        var level2Finished = level2Data.every(item => item.canDraw)
-        var level3Finished = level3Data.every(item => item.canDraw)
-        var level4Finished = level4Data.every(item => item.canDraw)
+        var isLevel1Finished = level1Data.every(item => item.canDraw)
+        var isLevel2Finished = level2Data.every(item => item.canDraw)
+        var isLevel3Finished = level3Data.every(item => item.canDraw)
+        var isLevel4Finished = level4Data.every(item => item.canDraw)
 
-        if (!level1Finished) {
+        if (!isLevel1Finished) {
           // 如果 level1 没有完成
-          level1Data.forEach(phil => {
-            const { year, itemId, itemName } = phil
 
-            const y = parseInt(this.getYbyTime(year))
-            const minY = y - this.CIRCLE_DIAMETER
-            const maxY = y + this.CIRCLE_DIAMETER
-            let hasCoinCideElement = level1Data.filter(item => item.itemId !== itemId).filter(item => (minY <= this.getYbyTime(item.year) && this.getYbyTime(item.year) <= maxY))
+          for (let index = 0; index < level1Data.length; index++) {
+            const nowPhilNode = level1Data[index];
 
-            if (!phil.zoom) {
-              if (hasCoinCideElement.length) {
-                // do nothing
+            // 如果已经标记为canDraw 则跳过该节点
+            if (nowPhilNode.canDraw) continue;
+
+            if (index == 0) {
+
+              nowPhilNode.canDraw = true
+              nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
+
+            } else {
+
+              // 从第二个开始只与上一个节点做比较，如果重合就调整当前节点位置
+              const prevPhilNode = level1Data[index - 1]
+              let isCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+
+              if (isCoinCide) {
+
+                // 如果重合，需要计算当前节点偏移多少才不重合并标记为canDraw
               } else {
-                // 如果不存在
-                phil.canDraw = true
-                phil.zoom = this.CIRCLE_DIAMETER / this.totalHeight
-                console.log(phil)
+                // 如果不重合，直接设置为canDraw
+
+                nowPhilNode.canDraw = true
+                nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
               }
             }
 
+          }
 
-
-          })
-          console.log(level1Data.filter(item => !item.canDraw))
-        } else if (!level2Finished) {
-          console.log('跳到 level2')
-          console.log(level1Data)
+        } else if (!isLevel2Finished) {
+          // console.log('跳到 level2')
+          // console.log(level1Data)
           // 如果 level2 没有完成
-        } else if (!level3Finished) {
+        } else if (!isLevel3Finished) {
           // 如果 level3 没有完成
-        } else if (!level4Finished) {
+        } else if (!isLevel4Finished) {
           // 如果 level4 没有完成
         } else {
           // 所有 level 都完成模拟
@@ -137,6 +145,16 @@ export default class PhilTimebar {
         }
       })
     })
+  }
+  checkIsCoinCide(prev, now) {
+
+
+    const y = parseInt(this.getYbyTime(prev.year))
+    const minY = y - this.CIRCLE_DIAMETER
+    const maxY = y + this.CIRCLE_DIAMETER
+    const targetY = parseInt(this.getYbyTime(now.year))
+    console.log(minY + ',' + targetY + ',' + maxY)
+    return minY <= targetY && targetY <= maxY
   }
   getYbyTime(time) {
     let percent = (time - this.minYear) / this.totalTime;
@@ -270,19 +288,6 @@ export default class PhilTimebar {
       prev: list[index - 1],
       next: list[index + 1]
     }
-  }
-  /**
-   * 
-   * @param {Number} y1 
-   * @param {Number} y2
-   * @return Boolean
-   * @desc 根据 y 坐标判断是否重合、默认 x 相同
-   */
-  checkIsCoinCide(y1, y2) {
-    const CIRCLE_RADIUS = 50
-    // 头像下方文字区域
-    const TEXT_HEIGHT = 40
-    return y2 - y1 < CIRCLE_RADIUS * 2 + TEXT_HEIGHT
   }
   getMajorElement(a, b) {
 
