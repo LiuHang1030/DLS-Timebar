@@ -92,8 +92,12 @@ export default class PhilTimebar {
       const gaps = item;
       const scale = this.unitTime[index]
 
+
+
       gaps.forEach(gap => {
         this.totalHeight = (this.maxYear - this.minYear) / scale * gap
+
+
         // 从优先级最高的节点数组开始模拟渲染，如该优先级节点的 canDraw 属性全部为 true,开始遍历下一个优先级节点列表
         var isLevel1Finished = level1Data.every(item => item.canDraw)
         var isLevel2Finished = level2Data.every(item => item.canDraw)
@@ -108,9 +112,12 @@ export default class PhilTimebar {
 
             // 如果已经标记为canDraw 则跳过该节点
             if (nowPhilNode.canDraw) continue;
-
+            console.log(nowPhilNode)
             if (index == 0) {
-
+              console.log(nowPhilNode)
+              console.log('可渲染缩放等级为')
+              console.log('刻度' + scale)
+              console.log('步长' + gap)
               nowPhilNode.canDraw = true
               nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
 
@@ -141,8 +148,6 @@ export default class PhilTimebar {
                     nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
                   } else {
                     // 如果出现重合
-                    console.log('需要折线显示的节点是')
-                    console.log(nowPhilNode)
                     // do nothing
                   }
 
@@ -153,6 +158,10 @@ export default class PhilTimebar {
                 }
               } else {
                 // 如果不重合，直接设置为canDraw
+                console.log(nowPhilNode)
+                console.log('可渲染缩放等级为')
+                console.log('刻度' + scale)
+                console.log('步长' + gap)
                 nowPhilNode.canDraw = true
                 nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
               }
@@ -161,7 +170,7 @@ export default class PhilTimebar {
           }
 
         } else if (!isLevel2Finished) {
-          console.log('跳到 level2')
+          // console.log('跳到 level2')
           // console.log(level1Data)
           // 如果 level2 没有完成
         } else if (!isLevel3Finished) {
