@@ -26,6 +26,11 @@ export default class PhilTimebar {
     }, props)
 
     this.initial()
+    this.totalTime = this.maxYear - this.minYear;
+    this.mockData = this.createMockData()
+    let { level1Data } = this.calculateEastPhilData()
+
+    this.level1Data = level1Data
 
     this.ruler = new Timebar({
       $html: this.$html,
@@ -50,9 +55,8 @@ export default class PhilTimebar {
     // let totalHeight = (this.maxYear - this.minYear) / 40 * 16
     // let totalTime = this.maxYear - this.minYear
     // let percent = (time - this.minYear) / totalTime / totalHeight
-    this.totalTime = this.maxYear - this.minYear;
-    this.mockData = this.createMockData()
-    this.calculatePhilData()
+
+
   }
   createMockData() {
     let mockData = []
@@ -79,14 +83,19 @@ export default class PhilTimebar {
     this.$html = $html
 
   }
-  calculatePhilData() {
+  calculateEastPhilData() {
 
     // 哲学家优先级一共分为[1.1, 1.2, 2, 3]四种
-    var level1Data = this.getLevelData(1.1)
-    var level2Data = this.getLevelData(1.2)
-    var level3Data = this.getLevelData(2)
-    var level4Data = this.getLevelData(3)
+    var level1Data = this.getLevelData(1.1, 'EAST')
+    var level2Data = this.getLevelData(1.2, 'EAST')
+    var level3Data = this.getLevelData(2, 'EAST')
+    var level4Data = this.getLevelData(3, 'EAST')
 
+    console.log('level1Data')
+    console.log(level1Data)
+
+    // 将可以在轴上渲染的节点存放在这里，每一个新遍历的节点，需要与这个数组进行比较。
+    let compareList = []
 
     this.mockData.forEach((item, index) => {
       const gaps = item;
@@ -104,66 +113,73 @@ export default class PhilTimebar {
         var isLevel3Finished = level3Data.every(item => item.canDraw)
         var isLevel4Finished = level4Data.every(item => item.canDraw)
 
+
+
         if (!isLevel1Finished) {
           // 如果 level1 没有完成
 
           for (let index = 0; index < level1Data.length; index++) {
+
             const nowPhilNode = level1Data[index];
 
             // 如果已经标记为canDraw 则跳过该节点
             if (nowPhilNode.canDraw) continue;
-            console.log(nowPhilNode)
+
             if (index == 0) {
-              console.log(nowPhilNode)
-              console.log('可渲染缩放等级为')
-              console.log('刻度' + scale)
-              console.log('步长' + gap)
+              compareList.push(nowPhilNode)
               nowPhilNode.canDraw = true
               nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
 
             } else {
 
               // 从第二个开始如果出现与上一个重合调整完位置后不与下一个节点重合的情况
-              const prevPhilNode = level1Data[index - 1]
-              let isCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+              const prevPhilNode = this.findNearestNode(compareList, nowPhilNode)
+
+
+              let isCoinCide = this.checkIsCoinCide(compareList, nowPhilNode)
 
               if (isCoinCide) {
                 // 如果重合，需要计算当前节点偏移多少才不重合并标记为canDraw
                 const prevNodeMaxY = parseInt(this.getYbyTime(prevPhilNode.year)) + this.CIRCLE_DIAMETER
-                const nowNodeTranslateY = prevNodeMaxY + this.CIRCLE_GAP // 偏移后的当前节点 Y 值
-                const nowNodeMinY = nowNodeTranslateY - (this.CIRCLE_DIAMETER / 2) // 偏移后的Y值 上顶点最小Y值
-                const nowNodeMaxY = nowNodeTranslateY + (this.CIRCLE_DIAMETER / 2) // 偏移后的Y值 上顶点最大Y值
+
+                const nowNodeTranslateY = prevNodeMaxY  // 偏移后的当前节点 Y 值
+
+                const nowNodeMinY = nowNodeTranslateY - (this.CIRCLE_DIAMETER / 4) // 偏移后的Y值 上顶点最小Y值
+                const nowNodeMaxY = nowNodeTranslateY + (this.CIRCLE_DIAMETER / 4) // 偏移后的Y值 上顶点最大Y值
                 // 获取下一个节点
                 const nextPhilNode = level1Data[index + 1]
                 if (nextPhilNode) {
                   // 如果存在下一个节点，需要比较当前节点调整完位置是否与下一个重合
-                  const nextNodeMinY = parseInt(this.getYbyTime(nextPhilNode.year)) - (this.CIRCLE_DIAMETER / 2)
+                  const nextNodeMinY = parseInt(this.getYbyTime(nextPhilNode.year)) - (this.CIRCLE_DIAMETER / 4)
+                  console.log('当前节点')
+                  console.log(nowPhilNode)
+                  console.log(compareList)
+                  console.log(prevPhilNode)
+                  console.log('nowNodeMaxY' + nowNodeMaxY)
+                  console.log('下一节点')
+                  console.log(nextPhilNode)
+                  console.log('nextNodeY' + parseInt(this.getYbyTime(nextPhilNode.year)))
                   // 如果当前节点偏移后的最大 Y 值小于下一个节点最小 Y值，即判定为不重合
-                  // console.log(nowPhilNode)
-                  // console.log(nowNodeMaxY)
-                  // console.log(nextPhilNode)
-                  // console.log(nextNodeMinY)
+
                   if (nowNodeMaxY < nextNodeMinY) {
+                    console.log('可以折现绘制的节点')
+                    console.log(nowPhilNode)
                     nowPhilNode.canDraw = true
                     nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
                   } else {
-                    // 如果出现重合
-                    // do nothing
+                    // 符合当前元素与上一个节点重合，但是与下个节点重合的节点
                   }
 
 
                 } else {
                   // 如果不存在下一个节点，即最后一个节点
-                  // console.log(nowPhilNode)
                 }
               } else {
                 // 如果不重合，直接设置为canDraw
-                console.log(nowPhilNode)
-                console.log('可渲染缩放等级为')
-                console.log('刻度' + scale)
-                console.log('步长' + gap)
                 nowPhilNode.canDraw = true
                 nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
+                compareList.push(nowPhilNode)
+
               }
             }
 
@@ -182,30 +198,53 @@ export default class PhilTimebar {
           return;
         }
       })
+
     })
+    return {
+      level1Data
+    }
   }
-  checkIsCoinCide(prev, now) {
-    const y = parseInt(this.getYbyTime(prev.year))
-    const minY = y - this.CIRCLE_DIAMETER
-    const maxY = y + this.CIRCLE_DIAMETER
-    const targetY = parseInt(this.getYbyTime(now.year))
-    return minY <= targetY && targetY <= maxY
+  checkIsCoinCide(compareList, now) {
+    // 检查当前节点与compareList中的所有节点是否有重合
+    let coinCideList = compareList.map(phil => {
+      const y = parseInt(this.getYbyTime(phil.year))
+      const minY = y - this.CIRCLE_DIAMETER
+      const maxY = y + this.CIRCLE_DIAMETER
+      const targetY = parseInt(this.getYbyTime(now.year))
+      return minY <= targetY && targetY <= maxY
+    }).filter(item => item)
+
+    if (coinCideList && coinCideList.length) {
+      // 如果存在相交节点，返回重合即true
+      return true
+    } else {
+      return false
+    }
+
+
+
+
+
   }
   getYbyTime(time) {
     let percent = (time - this.minYear) / this.totalTime;
     return percent * this.totalHeight;
   }
-  getLevelData(level) {
-    return this.philData.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
+  getLevelData(level, originType) {
+    return this.philData.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
   }
 
   drawAvatar(e) {
     // tab栏进行东西方哲学家筛选功能
-    const { ruler, screenStartTime, screenEndTime } = e
+    const { ruler, screenStartTime, screenEndTime, totalHeight } = e
     const oneScreenTime = screenEndTime - screenStartTime
 
     this.centerPx = e.ruler.centerPx
     this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
+
+
+    let timebarZoom = this.CIRCLE_DIAMETER / totalHeight
+
     // 将数据分为东西方两类
 
     // 筛选出所有当前轴起止年范围内的哲学家
@@ -217,25 +256,29 @@ export default class PhilTimebar {
     // let canDrawEastData = this.filterCanDrawList(e, eastData)
     // let canDrawWestData = this.filterCanDrawList(e, westData)
 
+    this.level1Data.forEach(phil => {
 
-    // canDrawEastData.forEach((phil) => {
-    //   const { originType, year, itemName, timeStr } = phil
-    //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-    //   const y = e.ruler.getYbyTime(year)
+    })
 
-    //   if (phil.canDraw && phil.canDraw !== 'DISABLE') {
-    //     new Avatar({
-    //       $html: this.$html,
-    //       ctx: this.ctx,
-    //       canvas: this.canvas,
-    //       originType,
-    //       philName: itemName,
-    //       born: timeStr,
-    //       x,
-    //       y
-    //     })
-    //   }
-    // })
+    this.level1Data.forEach((phil) => {
+      const { originType, year, itemName, timeStr, zoom } = phil
+      const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+      const y = e.ruler.getYbyTime(year)
+
+
+      if (zoom >= timebarZoom) {
+        new Avatar({
+          $html: this.$html,
+          ctx: this.ctx,
+          canvas: this.canvas,
+          originType,
+          philName: itemName,
+          born: timeStr,
+          x,
+          y
+        })
+      }
+    })
     // canDrawWestData.forEach((phil) => {
     //   const { originType, year, itemName, timeStr } = phil
     //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
@@ -316,13 +359,17 @@ export default class PhilTimebar {
     return levelData.filter(item => item.originType === origin)
   }
   /**
-   * @desc 寻找离当前圆心最近的圆圈
+   * @desc 寻找离当前节点最近已渲染节点
    */
-  findNearestCircle(list, index) {
-    return {
-      prev: list[index - 1],
-      next: list[index + 1]
-    }
+  findNearestNode(compareList, nowPhilNode) {
+    let nearestItem = compareList.map(item => {
+      return {
+        year: Math.abs(item.year - nowPhilNode.year),
+        id: item.id
+      }
+    }).sort((m, n) => m.year - n.year)[0]
+
+    return compareList.filter(item => item.id == nearestItem.id)[0]
   }
   getMajorElement(a, b) {
 
