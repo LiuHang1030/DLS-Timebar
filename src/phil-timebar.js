@@ -89,6 +89,7 @@ export default class PhilTimebar {
 
     // 哲学家优先级一共分为[1.1, 1.2, 2, 3]四种
     var level1Data = this.getLevelData(1.1, 'EAST')
+    // alert(JSON.stringify(level1Data))
     var level2Data = this.getLevelData(1.2, 'EAST')
     var level3Data = this.getLevelData(2, 'EAST')
     var level4Data = this.getLevelData(3, 'EAST')
@@ -132,8 +133,7 @@ export default class PhilTimebar {
             } else {
               // 从第二个开始如果出现与上一个重合调整完位置后不与下一个节点重合的情况
               const nearestRenderNode = this.findNearestNode(compareList, nowPhilNode)
-              const prevPhilNode = level1Data[index - 1]
-              let isCoinCide = this.checkIsCoinCide(compareList, nowPhilNode)
+              const isCoinCide = this.checkIsCoinCide(compareList, nowPhilNode)
 
 
               // 这里让当前节点与两个节点进行比较
@@ -143,52 +143,20 @@ export default class PhilTimebar {
 
               // if (!nowPhilNode.zoom) {
               if (isCoinCide) {
-                // 如果重合，需要计算当前节点偏移多少才不重合并标记为canDraw
                 const prevNodeMaxY = parseInt(this.getYbyTime(nearestRenderNode.year)) + this.CIRCLE_DIAMETER
                 const nowNodeTranslateY = prevNodeMaxY  // 偏移后的当前节点 Y 值
                 const nowNodeMinY = nowNodeTranslateY - (this.CIRCLE_DIAMETER / 2) // 偏移后的Y值 上顶点最小Y值
                 const nowNodeMaxY = nowNodeTranslateY + (this.CIRCLE_DIAMETER / 2) // 偏移后的Y值 上顶点最大Y值
-                // 获取下一个节点
-                const nextPhilNode = level1Data[index + 1]
-                if (nextPhilNode) {
-                  // 如果存在下一个节点，需要比较当前节点调整完位置是否与下一个重合
-                  const nextNodeMinY = parseInt(this.getYbyTime(nextPhilNode.year)) - (this.CIRCLE_DIAMETER / 2)
-                  // 如果当前节点偏移后的最大 Y 值小于下一个节点最小 Y值，即判定为不重合
-                  if (nowNodeMaxY < nextNodeMinY) {
-                    compareList.push(nowPhilNode)
-                    nowPhilNode.canDraw = true
-                    nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
-                    nowPhilNode.translateY = nowNodeTranslateY
-                  } else {
-                    // 与上下节点都重合
-
-                  }
+                // 重合的话，需要检查上一个重合的节点是折线显示，还是直线直出
+                // nowPhilNode.zoom = 
 
 
-                } else {
-                  // 如果不存在下一个节点，即最后一个节点
-                  // console.log('最后一个节点')
-                  // let endTimeY = this.getYbyTime(this.maxYear)
-                  // if (nowNodeMaxY < endTimeY) {
-                  //   nowPhilNode.canDraw = true
-                  //   nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
-                  //   // nowPhilNode.translateY = nowNodeTranslateY
-                  // } else {
-                  //   // 与上下节点都重合
-                  //   // do nothing
-                  // }
-
-                }
               } else {
-                // 如果不重合，直接设置为canDraw
+                // 节点直出
                 compareList.push(nowPhilNode)
                 nowPhilNode.canDraw = true
                 nowPhilNode.zoom = this.CIRCLE_DIAMETER / this.totalHeight
-
-
               }
-              // }
-
             }
 
           }
@@ -244,7 +212,7 @@ export default class PhilTimebar {
     return percent * this.totalHeight;
   }
   getLevelData(level, originType) {
-    return this.philData.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
+    return this.philData.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year > n.year)
   }
 
   drawAvatar(e) {
