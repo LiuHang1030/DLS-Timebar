@@ -300,13 +300,7 @@ export default class PhilTimebar {
           const isCoinCide = this.checkIsRealCoinCide(prevPhilNode, nowPhilNode, e)
           if (isCoinCide) {
             // 如果上一个节点还在折线状态，并且当前这个元素还与折线节点重叠
-            const originY = parseInt(ruler.getYbyTime(nowPhilNode.year))
-            const prevNodeMaxY = parseInt(ruler.getYbyTime(prevPhilNode.year)) + this.CIRCLE_DIAMETER
-            const triangleHeight = prevNodeMaxY - originY
-            const triangleLong = 100
-            const hypotenuse = Math.sqrt((Math.pow(triangleHeight, 2) + Math.pow(triangleLong, 2)))
-            const angle = triangleHeight / hypotenuse
-            nowPhilNode.angle = angle
+
 
           } else {
             const originY = parseInt(ruler.getYbyTime(nowPhilNode.year))
