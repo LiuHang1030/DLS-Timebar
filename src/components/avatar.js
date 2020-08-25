@@ -8,6 +8,7 @@ export default class Avatar {
       originType: 'EAST', // EAST OR WEST
       x: 0,
       y: 0,
+      angle: 0,
       importantce: 1,
       avatarUrl: '',
       philId: '',
@@ -18,13 +19,14 @@ export default class Avatar {
 
 
     this.centerPx = this.$html.width() / 2
+    this.oppsiteSide = this.angle * 120
     this.createAvatar()
   }
   createAvatar() {
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
-    this.drawCircle(this.x, this.y)
-    this.drawText(this.philName, this.x, this.y + this.size + 20)
-    this.drawText(this.born, this.x, this.y + this.size + 35)
+    this.drawCircle(this.x, this.y + this.oppsiteSide)
+    this.drawText(this.philName, this.x, this.y + this.size + 20 + this.oppsiteSide)
+    this.drawText(this.born, this.x, this.y + this.size + 35 + this.oppsiteSide)
     this.drawLine(lineMoveToX, this.y)
   }
   drawCircle(x, y) {
@@ -72,17 +74,27 @@ export default class Avatar {
     // this.ctx.fillText(importance, x, y);
   }
   drawLine(x, y) {
-    const lineToX = this.originType === 'EAST' ? this.centerPx + 15 : this.centerPx - 15
+    const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 15
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
     gradient.addColorStop(1, "#AE295B");
     this.ctx.save()
-    this.ctx.beginPath()
-    this.ctx.lineWidth = 2;
+
+    this.ctx.lineWidth = 1;
     this.ctx.fillStyle = 'yellow'
-    this.ctx.moveTo(x, y)
-    this.ctx.lineTo(lineToX, y)
-    this.ctx.closePath()
+    if (this.angle >= 0) {
+      this.ctx.beginPath()
+      this.ctx.moveTo(this.centerPx, y)
+      this.ctx.lineTo(lineToX, y + this.oppsiteSide)
+      this.ctx.lineTo(lineToX + 30, y + this.oppsiteSide)
+
+    } else {
+      this.ctx.beginPath()
+      this.ctx.moveTo(x, y)
+      this.ctx.lineTo(lineToX, y)
+      this.ctx.closePath()
+    }
+
 
     this.ctx.strokeStyle = gradient
     this.ctx.stroke()
