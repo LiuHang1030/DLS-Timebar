@@ -19,7 +19,7 @@ export default class Avatar {
 
 
     this.centerPx = this.$html.width() / 2
-    this.oppsiteSide = this.angle * 120
+    this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
     this.createAvatar()
   }
   createAvatar() {
