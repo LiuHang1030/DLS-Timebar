@@ -74,7 +74,7 @@ export default class Avatar {
     // this.ctx.fillText(importance, x, y);
   }
   drawLine(x, y) {
-    const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 15
+    const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
     gradient.addColorStop(1, "#AE295B");
@@ -82,23 +82,44 @@ export default class Avatar {
 
     this.ctx.lineWidth = 1;
     this.ctx.fillStyle = 'yellow'
-    if (this.angle >= 0) {
-      this.ctx.beginPath()
-      this.ctx.moveTo(this.centerPx, y)
-      this.ctx.lineTo(lineToX, y + this.oppsiteSide)
-      this.ctx.lineTo(lineToX + 30, y + this.oppsiteSide)
+    if (this.originType === 'EAST') {
+      if (this.angle >= 0) {
+        this.ctx.beginPath()
+        this.ctx.moveTo(this.centerPx, y)
+        this.ctx.lineTo(lineToX, y + this.oppsiteSide)
+        this.ctx.lineTo(lineToX + 30, y + this.oppsiteSide)
 
+
+      } else {
+        this.ctx.beginPath()
+        this.ctx.moveTo(x, y)
+        this.ctx.lineTo(lineToX, y)
+        this.ctx.closePath()
+      }
     } else {
-      this.ctx.beginPath()
-      this.ctx.moveTo(x, y)
-      this.ctx.lineTo(lineToX, y)
-      this.ctx.closePath()
+      if (this.angle >= 0) {
+        this.ctx.beginPath()
+        this.ctx.moveTo(this.centerPx, y)
+        this.ctx.lineTo(lineToX, y + this.oppsiteSide)
+        this.ctx.lineTo(lineToX - 30, y + this.oppsiteSide)
+
+
+      } else {
+        this.ctx.beginPath()
+        this.ctx.moveTo(x, y)
+        this.ctx.lineTo(lineToX, y)
+        this.ctx.closePath()
+      }
     }
+
 
 
     this.ctx.strokeStyle = gradient
     this.ctx.stroke()
+    this.ctx.closePath()
     this.ctx.restore()
+
+
   }
   _bind() {
 

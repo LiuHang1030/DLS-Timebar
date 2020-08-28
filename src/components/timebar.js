@@ -651,8 +651,7 @@ export default class Timebar {
       this.setTimeByOffset(this.minYear, this.maxYear);
     }
 
-    // console.log(this.bufferYears, this.renderStartX, this.translate.x, this.unitTime, this.unitWidth);
-    this.render();
+    // _zoom 方法中不再执行 render函数
 
     /**
      * 触发外部事件
