@@ -8,6 +8,7 @@ export default class Avatar {
       originType: 'EAST', // EAST OR WEST
       x: 0,
       y: 0,
+      originY: 0,
       angle: 0,
       importantce: 1,
       avatarUrl: '',
@@ -18,16 +19,17 @@ export default class Avatar {
     }, props)
 
 
+
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
     this.createAvatar()
   }
   createAvatar() {
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
-    this.drawCircle(this.x, this.y + this.oppsiteSide)
-    this.drawText(this.philName, this.x, this.y + this.size + 20 + this.oppsiteSide)
-    this.drawText(this.born, this.x, this.y + this.size + 35 + this.oppsiteSide)
-    this.drawLine(lineMoveToX, this.y)
+    this.drawCircle(this.x, this.y)
+    this.drawText(this.philName, this.x, this.y + this.size + 20)
+    this.drawText(this.born, this.x, this.y + this.size + 35)
+    this.drawLine(lineMoveToX, this.y, this.originY)
   }
   drawCircle(x, y) {
     this.ctx.beginPath();
@@ -73,8 +75,9 @@ export default class Avatar {
     this.ctx.restore()
     // this.ctx.fillText(importance, x, y);
   }
-  drawLine(x, y) {
+  drawLine(x, y, originY) {
     const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
+    const lineTox2 = this.originType === 'EAST' ? this.x - 35 : this.x + 35
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
     gradient.addColorStop(1, "#AE295B");
@@ -83,31 +86,31 @@ export default class Avatar {
     this.ctx.lineWidth = 1;
     this.ctx.fillStyle = 'yellow'
     if (this.originType === 'EAST') {
-      if (this.angle >= 0) {
+      if (this.angle > 0) {
         this.ctx.beginPath()
-        this.ctx.moveTo(this.centerPx, y)
-        this.ctx.lineTo(lineToX, y + this.oppsiteSide)
-        this.ctx.lineTo(lineToX + 30, y + this.oppsiteSide)
+        this.ctx.moveTo(this.centerPx, originY)
+        this.ctx.lineTo(lineToX, y)
+        this.ctx.lineTo(lineToX + 30, y)
 
 
       } else {
         this.ctx.beginPath()
-        this.ctx.moveTo(x, y)
-        this.ctx.lineTo(lineToX, y)
+        this.ctx.moveTo(this.centerPx, this.y)
+        this.ctx.lineTo(lineTox2, y)
         this.ctx.closePath()
       }
     } else {
       if (this.angle >= 0) {
         this.ctx.beginPath()
-        this.ctx.moveTo(this.centerPx, y)
-        this.ctx.lineTo(lineToX, y + this.oppsiteSide)
-        this.ctx.lineTo(lineToX - 30, y + this.oppsiteSide)
+        this.ctx.moveTo(this.centerPx, originY)
+        this.ctx.lineTo(lineToX, y)
+        this.ctx.lineTo(lineToX - 30, y)
 
 
       } else {
         this.ctx.beginPath()
-        this.ctx.moveTo(x, y)
-        this.ctx.lineTo(lineToX, y)
+        this.ctx.moveTo(this.centerPx, y)
+        this.ctx.lineTo(lineTox2, y)
         this.ctx.closePath()
       }
     }

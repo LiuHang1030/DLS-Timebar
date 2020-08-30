@@ -24,6 +24,7 @@ export default class PhilTimebar {
       maxUnitWidth: 32,
       unitWidth: 16,
       renderList: [],
+      level3RenderList: [],
       westRenderList: []
 
     }, props)
@@ -31,10 +32,8 @@ export default class PhilTimebar {
     this.initial()
     this.totalTime = this.maxYear - this.minYear;
     this.mockData = this.createMockData()
-    // let { eastLevel1Data } = this.calculateEastPhilData()
-    // let { westLevel1Data } = this.calculateWestPhilData()
-    // this.eastLevel1Data = eastLevel1Data
-    // this.westLevel1Data = westLevel1Data
+    this.runMock()
+
     this.ruler = new Timebar({
       $html: this.$html,
       canvas: this.canvas,
@@ -45,7 +44,6 @@ export default class PhilTimebar {
       minUnitWidth: this.minUnitWidth,
       maxUnitWidth: this.maxUnitWidth,
       unitWidth: this.unitWidth,
-      philData: this.philData,
       onRender: (e) => {
         const { screenStartTime, screenEndTime } = e
         // this.nowPhilData = this.filterWithInPhilData(screenStartTime, screenEndTime)
@@ -53,6 +51,7 @@ export default class PhilTimebar {
         this.drawPeriod(e)
         this.calculatePosition(e)
         this.drawQuote(e)
+        // this.drawDot(e)
       }
     })
     // this.ruler.setTimeByOffset(-800, 2000, 0.5)
@@ -80,6 +79,64 @@ export default class PhilTimebar {
     }
     return mockData
   }
+  runMock() {
+    let eastLevel1Data = this.getLevelData(1.1, 'EAST')
+    let westLevel1Data = this.getLevelData(1.1, 'WEST')
+    let eastLevel2Data = this.getLevelData(1.2, 'EAST')
+    let westLevel2Data = this.getLevelData(1.2, 'WEST')
+    let eastLevel3Data = this.getLevelData(2, 'EAST')
+    let westLevel3Data = this.getLevelData(2, 'WEST')
+    let eastLevel4Data = this.getLevelData(3, 'EAST')
+    let westLevel4Data = this.getLevelData(3, 'WEST')
+    for (let index = 0; index < this.mockData.length; index++) {
+      const unitTime = this.unitTime[index]
+      const unitHeightList = this.mockData[index];
+      for (let index = 0; index < unitHeightList.length; index++) {
+
+        const unitHeight = unitHeightList[index];
+        const totalHeight = unitHeight * ((this.maxYear - this.minYear) / unitTime);
+        const zoom = this.CIRCLE_DIAMETER / totalHeight
+
+        // 从优先级最高的节点数组开始模拟渲染，如该优先级节点的 zoom 有值,开始遍历下一个优先级节点列表
+
+        const eastLevel1Finished = eastLevel1Data.every(item => item.zoom)
+        const westLevel1Finished = westLevel1Data.every(item => item.zoom)
+        // const level2Finished = level2Data.every(item => item.zoom)
+        // const level3Finished = level3Data.every(item => item.zoom)
+        // const level4Finished = level4Data.every(item => item.zoom)
+
+        // 需要知道该节点在哪个zoom等级下可以被渲染
+        if (!eastLevel1Finished || !westLevel1Finished) {
+          // 将该级别节点分为东西两部分，各自分别进行在该zoom等级下进行比较 重合关系
+          if (!eastLevel1Finished) {
+            for (let index = 0; index < eastLevel1Data.length; index++) {
+              const nowPhilNode = eastLevel1Data[index];
+              const y = this.mockGetYByTime(nowPhilNode.year, totalHeight)
+              console.log(y)
+              console.log(nowPhilNode.itemName)
+
+            }
+
+          }
+          if (!westLevel1Finished) {
+            for (let index = 0; index < westLevel1Data.length; index++) {
+              const nowPhilNode = westLevel1Data[index];
+              const y = this.mockGetYByTime(nowPhilNode.year, totalHeight)
+              console.log(y)
+              console.log(nowPhilNode.itemName)
+
+            }
+          }
+        }
+
+      }
+    }
+  }
+  mockGetYByTime(time, totalHeight) {
+    const totalTime = this.maxYear - this.minYear;
+    let percent = (time - this.minYear) / totalTime;
+    return parseInt(percent * totalHeight);
+  }
   initial() {
     const { canvas, ctx, $html } = new Canvas()
     this.canvas = canvas
@@ -87,15 +144,16 @@ export default class PhilTimebar {
     this.$html = $html
 
   }
-  checkIsCoinCide(compareNode, nowNode, e, checkAngle = false) {
+  checkIsCoinCide(compareNode, nowNode, checkAngle = false) {
     if (checkAngle) {
       if (compareNode.year < nowNode.year) {
+
         // prevNode
         // 当前节点与上一个节点是否重合，只需要比较当前节点的最小 Y 值是否大于上个节点的最大值  
         const prevNodeTranslate = compareNode.angle && compareNode.angle >= 0 ? compareNode.angle * 100 : 0
         const nowNodeTranslate = nowNode.angle && nowNode.angle >= 0 ? nowNode.angle * 100 : 0
-        const prevNodeY = parseInt(e.ruler.getYbyTime(compareNode.year)) + prevNodeTranslate
-        const nowNodeY = parseInt(e.ruler.getYbyTime(nowNode.year)) + nowNodeTranslate
+        const prevNodeY = compareNode.y + prevNodeTranslate
+        const nowNodeY = nowNode.y + nowNodeTranslate
         const prevNodeMaxY = prevNodeY + (this.CIRCLE_DIAMETER - (this.CIRCLE_DIAMETER / 4))
         const nowNodeMinY = nowNodeY - (this.CIRCLE_DIAMETER / 4)
         // 当前节点最小 Y值小于下一个节点最大 Y 值即判定为重合
@@ -105,8 +163,8 @@ export default class PhilTimebar {
         // 当前节点与下一个节点是否重合，只需要比较当前节点的最大 Y 值是否大于上个节点的最小值  
         const nextNodeTranslate = compareNode.angle && compareNode.angle >= 0 ? compareNode.angle * 100 : 0
         const nowNodeTranslate = nowNode.angle && nowNode.angle >= 0 ? nowNode.angle * 100 : 0
-        const nextNodeY = parseInt(e.ruler.getYbyTime(compareNode.year)) + nextNodeTranslate
-        const nowNodeY = parseInt(e.ruler.getYbyTime(nowNode.year)) + nowNodeTranslate
+        const nextNodeY = compareNode.y + nextNodeTranslate
+        const nowNodeY = nowNode.y + nowNodeTranslate
         const nextNodeMinY = nextNodeY - this.CIRCLE_DIAMETER
         const nextNodeMaxY = nextNodeY + this.CIRCLE_DIAMETER
         const nowNodeMaxY = nowNodeY + (this.CIRCLE_DIAMETER - (this.CIRCLE_DIAMETER / 4))
@@ -114,10 +172,11 @@ export default class PhilTimebar {
         return nowNodeMaxY > nextNodeMinY
       }
     } else {
-      const y = parseInt(e.ruler.getYbyTime(compareNode.year))
+
+      const y = compareNode.y
       const minY = y - this.CIRCLE_DIAMETER
       const maxY = y + this.CIRCLE_DIAMETER
-      const targetY = parseInt(e.ruler.getYbyTime(nowNode.year))
+      const targetY = nowNode.y
       return minY <= targetY && targetY <= maxY
     }
 
@@ -128,11 +187,16 @@ export default class PhilTimebar {
     return percent * this.totalHeight;
   }
   getLevelData(level, originType) {
-    return this.philData.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year < n.year).concat([])
+    if (originType) {
+      return this.philData.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year < n.year).concat([])
+    } else {
+      return this.philData.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year).concat([])
+    }
+
   }
   drawAvatar(avatarData, angle = 0) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y } = avatarData
+      const { originType, itemName, timeStr, x, y, originY } = avatarData
       new Avatar({
         $html: this.$html,
         ctx: this.ctx,
@@ -142,7 +206,8 @@ export default class PhilTimebar {
         born: timeStr,
         angle,
         x,
-        y
+        y,
+        originY
       })
     }
 
@@ -151,146 +216,118 @@ export default class PhilTimebar {
     // tab栏进行东西方哲学家筛选功能
     const { ruler, screenStartTime, screenEndTime, totalHeight } = e
     if (totalHeight) {
-      const oneScreenTime = screenEndTime - screenStartTime
 
       this.centerPx = e.ruler.centerPx
-      this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
-
       this.philData.forEach(phil => {
         const { originType, year } = phil
         phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
         phil.y = parseInt(ruler.getYbyTime(year))
+        phil.originY = parseInt(ruler.getYbyTime(year))
       })
-      // this.westLevel1Data.forEach((phil, index) => {
-      //   const nowPhilNode = phil
-      //   const { originType, year, itemName, timeStr, zoom } = nowPhilNode
-      //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-      //   const y = e.ruler.getYbyTime(year)
-      //   let avatarData = {
-      //     originType,
-      //     itemName,
-      //     timeStr,
-      //     x,
-      //     y
-      //   }
 
-      //   if (index == 0) {
-      //     nowPhilNode.angle = 0
-      //     this.drawAvatar(avatarData)
-      //     if (this.westRenderList.every(item => item.id !== nowPhilNode.id)) {
-      //       this.westRenderList.push(nowPhilNode)
-      //     }
-      //   } else {
-      //     // 从当前级别节点索引第2个开始
+      this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
+      this.eastLevel1Data = this.getLevelData(1.1, 'EAST')
+      this.eastLevel2Data = this.getLevelData(1.2, 'EAST')
+      this.eastLevel3Data = this.getLevelData(2, 'EAST')
 
-      //     // 获取当前节点的前一个节点和下一个节点
-      //     const [prevPhilNode, nextPhilNode] = this.findNearestNode(this.westRenderList, nowPhilNode)
-      //     // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
-      //     const hasNotDrawNode = this.findEarlyButNotDrawNode(this.westLevel1Data, this.westRenderList, nowPhilNode, e)
-      //     if (!hasNotDrawNode) {
-      //       // 判断当前节点是否与已渲染列表中的上下节点重合
-      //       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode, e, true)
-      //       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode, e, true)
 
-      //       if (isPrevCoinCide) {
-      //         // 如果当前节点与上一个节点重合
-      //         if (prevPhilNode.angle > 0) {
-      //           // 如果上一个节点是折线显示中
-      //           // 那么当前这个节点就不应被画
-      //           let hasNodeList = this.westRenderList.filter(item => item.id == nowPhilNode.id)
-      //           if (hasNodeList && hasNodeList.length) {
-      //             let index = this.westRenderList.findIndex(item => item.id == hasNodeList[0].id)
-      //             this.westRenderList.splice(index, 1)
-      //           }
-      //         } else {
-      //           // 上一个节点是直线显示
-      //           const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode, e)
-      //           nowPhilNode.angle = angle
-      //           this.drawAvatar(avatarData, angle)
-      //           if (this.westRenderList.every(item => item.id !== nowPhilNode.id)) {
-      //             this.westRenderList.push(nowPhilNode)
-      //           }
 
-      //         }
-      //       } else {
-      //         // 如果当前节点与上一个节点不重合
-      //         nowPhilNode.angle = 0
-      //         this.drawAvatar(avatarData)
-      //         if (this.westRenderList.every(item => item.id !== nowPhilNode.id)) {
-      //           this.westRenderList.push(nowPhilNode)
-      //         }
-      //       }
-      //     }
-      //   }
-      // })
-      // this.eastLevel1Data.forEach((phil, index) => {
-      //   const nowPhilNode = phil
-      //   const { originType, year, itemName, timeStr, zoom } = nowPhilNode
-      //   const x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-      //   const y = e.ruler.getYbyTime(year)
-      //   let avatarData = {
-      //     originType,
-      //     itemName,
-      //     timeStr,
-      //     x,
-      //     y
-      //   }
+      this.eastLevel1Data.forEach((nowPhilNode, index) => {
+        if (index == 0) {
+          nowPhilNode.angle = 0
+          nowPhilNode.canDraw = true
+          this.drawAvatar(nowPhilNode)
+          if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
+            this.renderList.push(nowPhilNode)
+          }
+        } else {
+          // 从当前级别节点索引第2个开始
 
-      //   if (index == 0) {
-      //     nowPhilNode.angle = 0
-      //     this.drawAvatar(avatarData)
-      //     if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
-      //       this.renderList.push(nowPhilNode)
-      //     }
-      //   } else {
-      //     // 从当前级别节点索引第2个开始
+          // 获取当前节点的前一个节点和下一个节点
+          const [prevPhilNode, nextPhilNode] = this.findNearestNode(this.renderList, nowPhilNode)
 
-      //     // 获取当前节点的前一个节点和下一个节点
-      //     const [prevPhilNode, nextPhilNode] = this.findNearestNode(this.renderList, nowPhilNode)
-      //     // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
-      //     const hasNotDrawNode = this.findEarlyButNotDrawNode(this.eastLevel1Data, this.renderList, nowPhilNode, e)
-      //     if (!hasNotDrawNode) {
-      //       // 判断当前节点是否与已渲染列表中的上下节点重合
-      //       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode, e, true)
-      //       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode, e, true)
+          // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
+          const hasNotDrawNode = this.findEarlyButNotDrawNode(this.eastLevel1Data, this.renderList, nowPhilNode)
+          if (!hasNotDrawNode) {
+            // 判断当前节点是否与已渲染列表中的上下节点重合
+            const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+            if (isPrevCoinCide) {
 
-      //       if (isPrevCoinCide) {
-      //         // 如果当前节点与上一个节点重合
-      //         if (prevPhilNode.angle > 0) {
-      //           // 如果上一个节点是折线显示中
-      //           // 那么当前这个节点就不应被画
-      //           let hasNodeList = this.renderList.filter(item => item.id == nowPhilNode.id)
-      //           if (hasNodeList && hasNodeList.length) {
-      //             let index = this.renderList.findIndex(item => item.id == hasNodeList[0].id)
-      //             this.renderList.splice(index, 1)
-      //           }
-      //         } else {
-      //           // 上一个节点是直线显示
-      //           const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode, e)
-      //           nowPhilNode.angle = angle
-      //           this.drawAvatar(avatarData, angle)
-      //           if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
-      //             this.renderList.push(nowPhilNode)
-      //           }
+              // 如果当前节点与上一个节点重合
+              if (prevPhilNode.angle > 0) {
+                // 如果上一个节点是折线显示中
+                // 那么当前这个节点就不应被画
+                nowPhilNode.canDraw = false
+                let hasNodeList = this.renderList.filter(item => item.id == nowPhilNode.id)
+                if (hasNodeList && hasNodeList.length) {
+                  let index = this.renderList.findIndex(item => item.id == hasNodeList[0].id)
+                  this.renderList.splice(index, 1)
+                }
+              } else {
+                // 上一个节点是直线显示
+                // console.log('需要折线处理的节点')
+                const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
+                nowPhilNode.angle = angle
+                nowPhilNode.y = angle * 120 + nowPhilNode.y
+                nowPhilNode.canDraw = true
+                this.drawAvatar(nowPhilNode, angle)
+                if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
+                  this.renderList.push(nowPhilNode)
+                }
 
-      //         }
-      //       } else {
-      //         // 如果当前节点与上一个节点不重合
-      //         nowPhilNode.angle = 0
-      //         this.drawAvatar(avatarData)
-      //         if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
-      //           this.renderList.push(nowPhilNode)
-      //         }
-      //       }
-      //     } else {
-      //       let hasNodeList = this.renderList.filter(item => item.id == nowPhilNode.id)
-      //       if (hasNodeList && hasNodeList.length) {
-      //         let index = this.renderList.findIndex(item => item.id == hasNodeList[0].id)
-      //         this.renderList.splice(index, 1)
-      //       }
-      //     }
-      //   }
-      // })
+              }
+            } else {
+              // 如果当前节点与上一个节点不重合
+              // console.log('不重合')
+              // console.log(prevPhilNode)
+              // console.log(nowPhilNode)
+              // 外层判断是否重合没有考虑上一个节点是否有折线显示情况，这里再次做校验
+              const isRealCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+              if (isRealCoinCide) {
+                // 考虑折线后还是重叠
+                nowPhilNode.canDraw = false
+              } else {
+                nowPhilNode.angle = 0
+                nowPhilNode.canDraw = true
+                this.drawAvatar(nowPhilNode)
+                if (this.renderList.every(item => item.id !== nowPhilNode.id)) {
+                  this.renderList.push(nowPhilNode)
+                }
+              }
+
+            }
+          } else {
+            nowPhilNode.canDraw = false
+            let hasNodeList = this.renderList.filter(item => item.id == nowPhilNode.id)
+            if (hasNodeList && hasNodeList.length) {
+              let index = this.renderList.findIndex(item => item.id == hasNodeList[0].id)
+              this.renderList.splice(index, 1)
+            }
+          }
+        }
+
+      })
+
+      console.log(this.renderList)
+      if (this.renderList.length == this.eastLevel1Data.length) {
+        this.eastLevel3Data.forEach((nowPhilNode, index) => {
+          const [prevPhilNode, nextPhilNode] = this.findNearestNode(this.renderList, nowPhilNode)
+          const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+          const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
+          const hasNotDrawNode = this.findEarlyButNotDrawNode(this.eastLevel3Data, this.renderList, nowPhilNode)
+
+
+          console.log('--------')
+          console.log(prevPhilNode)
+          console.log(nowPhilNode)
+          console.log(`${nowPhilNode.itemName}和${prevPhilNode.itemName}是否重合${isPrevCoinCide}`)
+          console.log(nextPhilNode)
+          console.log(`${nowPhilNode.itemName}和${nextPhilNode.itemName}是否重合${isNextCoinCide}`)
+          // console.log(hasNotDrawNode)
+        })
+      }
+
+
 
     }
   }
@@ -300,10 +337,9 @@ export default class PhilTimebar {
    * @param {Object} nowNode  当前节点
    * @param {TimeBar} e
    */
-  calculateNowNodeAngle(referNode, nowNode, e) {
-    const { ruler } = e
-    const originY = parseInt(ruler.getYbyTime(nowNode.year))
-    const prevNodeMaxY = parseInt(ruler.getYbyTime(referNode.year)) + this.CIRCLE_DIAMETER
+  calculateNowNodeAngle(referNode, nowNode) {
+    const originY = nowNode.y
+    const prevNodeMaxY = referNode.y + this.CIRCLE_DIAMETER
     const triangleHeight = prevNodeMaxY - originY
     const triangleLong = 100
     const hypotenuse = Math.sqrt((Math.pow(triangleHeight, 2) + Math.pow(triangleLong, 2)))
@@ -339,7 +375,7 @@ export default class PhilTimebar {
    */
   filterWithInPhilData(data, startTime, endTime) {
     // 上下溢出一部分
-    const oneScreenTime = endTime - startTime
+    const oneScreenTime = 50
     return data.filter(item => item.year >= parseInt(startTime - oneScreenTime) && item.year <= (parseInt(endTime + oneScreenTime)))
   }
   /**
@@ -357,17 +393,17 @@ export default class PhilTimebar {
    * @param {String} origin EAST OR WEST
    * @desc 获取东、西方哲学家 年份从小到大排序后的数据
    */
-  getOriginData(levelData, origin) {
-    return levelData.filter(item => item.originType === origin)
+  getOriginData(origin) {
+    return this.philData.filter(item => item.originType === origin).sort((m, n) => m.year - n.year).sort((m, n) => m.importance - n.importance)
   }
-  findEarlyButNotDrawNode(levelList, renderList, nowPhilNode, e) {
-    const { ruler } = e
+  findEarlyButNotDrawNode(levelList, renderList, nowPhilNode) {
+
     let earlyList = levelList.filter(item => item.id !== nowPhilNode.id).filter(item => item.year < nowPhilNode.year).filter(item => {
       // 获取当前节点辐射范围内的
-      const nowPhilNodeY = parseInt(ruler.getYbyTime(nowPhilNode.year))
+      const nowPhilNodeY = nowPhilNode.y
       const nowPhilNodeMinY = nowPhilNodeY - this.CIRCLE_DIAMETER
       const nowPhilNodeMaxY = nowPhilNodeY + this.CIRCLE_DIAMETER
-      const itemY = parseInt(ruler.getYbyTime(item.year))
+      const itemY = item.y
 
       return nowPhilNodeMinY <= itemY && itemY <= nowPhilNodeMaxY
     })
