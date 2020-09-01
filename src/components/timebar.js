@@ -612,7 +612,7 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio;
+      newUnitTime = this.unitTime * zoomRatio;
     }
 
 

@@ -6,15 +6,27 @@ export default class dot {
       ctx: null,
       x: 0,
       y: 0,
-      size: 12.5,
-      background: '#AE295B'
+      zoom: 0,
+      nowZoom: 0,
+      size: 6,
     }, props)
 
 
     this.centerPx = this.$html.width() / 2
+    this.x = this.centerPx
+    this.alpha = 1.8 - (this.zoom / this.nowZoom)
     this.createDot()
   }
   createDot() {
+    this.drawCircle(this.x, this.y)
+  }
+  drawCircle(x, y) {
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = `rgba(174,41,91,${this.alpha})`
+    this.ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
+    this.ctx.fill();
+    this.ctx.closePath();
 
   }
 }
