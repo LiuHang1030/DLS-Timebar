@@ -68,12 +68,14 @@ export default class Avatar {
     this.ctx.drawImage(img, x, y, d, d);
     this.ctx.restore();
   }
-  drawRect(text, x, y, w = 80, h = 20) {
+  drawRect(text, x, y, w = 50, h = 10) {
     this.ctx.save()
     this.ctx.fillStyle = '#a0365b'
-    this.ctx.fillRect(x - w / 2, y + 28, w, h);
+    this.ctx.fillRect(x - w / 2, y, w, h);
+    this.ctx.strokeStyle = '#FFFFFF'
+    this.ctx.fillText(text, x - w / 2, y);
+    this.ctx.stroke()
     this.ctx.restore()
-    // this.ctx.fillText(importance, x, y);
   }
   drawLine(x, y, originY) {
     const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
