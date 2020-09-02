@@ -3,7 +3,18 @@ export default class Controller {
     Object.assign(this, {
       container: document.body,
       tab: true,
-      slider: true
+      slider: true,
+      defaultIndex: 1,
+      tabOptions: [{
+        text: '西方',
+        index: 0
+      }, {
+        text: '世界',
+        index: 1
+      }, {
+        text: '中国',
+        index: 2
+      }]
     }, props)
     if (this.tab) {
       this.createTab()
@@ -13,7 +24,14 @@ export default class Controller {
     }
   }
   createTab() {
-    this.$html = 
+    // let $tabList = $('<ul></ul>')
+    // $tabList.addClass('tab-list')
+    // tabOptions.forEach(tab => {
+    //   let $tab = $('<li></li>')
+    //   $tab.addClass('tab-item')
+    //   $tab.html(tab.text)
+    //   $tab.attr('index', tab.text)
+    // })
   }
   createSlider() {
 

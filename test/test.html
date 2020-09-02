@@ -38,7 +38,52 @@
 
     }
 
+    .quote {
+      position: absolute;
+      top: 10%;
+      width: 35%;
 
+      color: #979797;
+      font-size: 15px;
+      padding: 8px 5px;
+
+      border-radius: 2px;
+      border: 1px solid rgba(215, 215, 215, 0.36);
+      transition: all .3s ease;
+      z-index: 999;
+
+      opacity: 0;
+      display: none;
+
+
+    }
+
+    .quote.show {
+      opacity: 1;
+      display: block;
+    }
+
+
+    .quote-title {
+      font-size: 15px;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .quote-content {
+      box-sizing: border-box;
+      padding-top: 5px;
+      height: 300px;
+      overflow: scroll;
+    }
+
+    .west-quote {
+      left: 32px;
+    }
+
+    .east-quote {
+      right: 32px;
+    }
 
     .test-btn {
       position: absolute;
