@@ -319,7 +319,7 @@ export default class PhilTimebar {
       // westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
       // eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.renderList)
       westRenderList = this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
-      console.log(westRenderList)
+      // console.log(westRenderList)
       westRenderList.forEach(nowPhilNode => {
         if (nowPhilNode.canDraw) {
           this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -390,7 +390,7 @@ export default class PhilTimebar {
     }
   }
   mapHighLevelNodeList(nodeList, renderList) {
-    console.log(nodeList)
+    // console.log(nodeList)
     return nodeList.map((nowPhilNode, index) => {
       if (index == 0) {
         nowPhilNode.angle = 0
@@ -465,6 +465,9 @@ export default class PhilTimebar {
     return nodeList.map((nowPhilNode, index) => {
       // 低优先级节点 需要上下比较已经存在的节点
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
+      console.log(nowPhilNode)
+      console.log(prevPhilNode)
+      console.log(nextPhilNode)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
 
@@ -483,30 +486,38 @@ export default class PhilTimebar {
           // 如果与上一个级别已渲染节点重合，但是与下一个节点不重合的情况
           // 尝试折线绘制
           const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
-          let cloneNowPhilNode = Object.assign({}, nowPhilNode)
-          cloneNowPhilNode.angle = angle
-          cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
-          const nextIndexPhilNode = nodeList[index + 1] || {}
-          const isNextCoinCide = this.checkIsCoinCide(nextIndexPhilNode, cloneNowPhilNode)
-          if (!isNextCoinCide && nextPhilNode.angle == 0 && prevPhilNode.angle == 0) {
-            nowPhilNode.angle = angle
-            nowPhilNode.y = angle * 120 + nowPhilNode.y
-            nowPhilNode.canDraw = true
-            // this.drawAvatar(nowPhilNode, angle)
-            if (renderList.every(item => item.id !== nowPhilNode.id)) {
-              renderList.push(nowPhilNode)
-            }
-            return nowPhilNode
-          } else {
-            // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-            nowPhilNode.canDraw = false
-            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-            if (hasNodeList && hasNodeList.length) {
-              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-              renderList.splice(index, 1)
-            }
-            return nowPhilNode
+          nowPhilNode.angle = angle
+          nowPhilNode.y = angle * 120 + nowPhilNode.y
+          nowPhilNode.canDraw = true
+          // this.drawAvatar(nowPhilNode, angle)
+          if (renderList.every(item => item.id !== nowPhilNode.id)) {
+            renderList.push(nowPhilNode)
           }
+          return nowPhilNode
+          // let cloneNowPhilNode = Object.assign({}, nowPhilNode)
+          // cloneNowPhilNode.angle = angle
+          // cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
+          // const nextIndexPhilNode = nodeList[index + 1] || {}
+          // const isNextCoinCide = this.checkIsCoinCide(nextIndexPhilNode, cloneNowPhilNode)
+          // if (!isNextCoinCide && nextPhilNode.angle == 0 && prevPhilNode.angle == 0) {
+          //   nowPhilNode.angle = angle
+          //   nowPhilNode.y = angle * 120 + nowPhilNode.y
+          //   nowPhilNode.canDraw = true
+          //   // this.drawAvatar(nowPhilNode, angle)
+          //   if (renderList.every(item => item.id !== nowPhilNode.id)) {
+          //     renderList.push(nowPhilNode)
+          //   }
+          //   return nowPhilNode
+          // } else {
+          //   // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+          //   nowPhilNode.canDraw = false
+          //   let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+          //   if (hasNodeList && hasNodeList.length) {
+          //     let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+          //     renderList.splice(index, 1)
+          //   }
+          //   return nowPhilNode
+          // }
 
 
         } else if (!isPrevCoinCide && !isNextCoinCide) {
