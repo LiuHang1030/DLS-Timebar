@@ -14,26 +14,39 @@ export default class Controller {
       }, {
         text: '中国',
         index: 2
-      }]
+      }],
+      onTabClickHandle: () => {
+
+      }
     }, props)
     if (this.tab) {
       this.createTab()
+      this.bind()
     }
     if (this.slider) {
       this.createSlider()
     }
   }
   createTab() {
-    // let $tabList = $('<ul></ul>')
-    // $tabList.addClass('tab-list')
-    // tabOptions.forEach(tab => {
-    //   let $tab = $('<li></li>')
-    //   $tab.addClass('tab-item')
-    //   $tab.html(tab.text)
-    //   $tab.attr('index', tab.text)
-    // })
+    this.$tabList = $('<ul></ul>')
+    this.$tabList.addClass('tab-list')
+    this.tabOptions.forEach(tab => {
+      let $tab = $('<li></li>')
+      $tab.addClass('tab-item')
+      $tab.html(tab.text)
+      $tab.attr('index', tab.index)
+      this.$tabList.append($tab)
+    })
+
+    this.container.appendChild(this.$tabList[0])
   }
   createSlider() {
 
+  }
+  bind() {
+    $('.tab-item').bind('click', () => {
+      var index = $(".tab-item").index($(this));
+      this.onTabClickHandle(index)
+    })
   }
 }
