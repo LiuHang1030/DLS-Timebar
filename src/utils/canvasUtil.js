@@ -20,10 +20,8 @@ CanvasRenderingContext2D.prototype.fillTextVertical = function (text, x, y) {
   } else if (baseline == 'top' || baseline == 'hanging') {
     y = y + arrWidth[0] / 2;
   }
-
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-
   // 开始逐字绘制
   arrText.forEach(function (letter, index) {
     // 确定下一个字符的纵坐标位置

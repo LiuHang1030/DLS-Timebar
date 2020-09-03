@@ -28,9 +28,8 @@ export default class Period {
     this.ctx.beginPath();
     this.ctx.moveTo(x, y)
     this.ctx.lineTo(x2, y)
-    this.ctx.closePath()
     this.ctx.lineWidth = 1
-    this.ctx.strokeStyle = '#fff'
+    this.ctx.strokeStyle = '#FFF'
     this.ctx.stroke()
     this.ctx.closePath()
   }
@@ -38,10 +37,13 @@ export default class Period {
     const x2 = this.origin == 'EAST' ? x - TEXT_MARGIN : x + TEXT_MARGIN
     this.ctx.beginPath()
     this.ctx.font = '12px sans-serif';
-    this.ctx.strokeStyle = '#fff'
+    this.ctx.strokeStyle = '#FFF'
+    this.ctx.fillStyle = '#FFF';
     this.ctx.textAlign = this.origin === 'EAST' ? 'right' : 'left';
     this.ctx.textBaseline = 'top';
     this.ctx.fillTextVertical(text, x2, y + TEXT_MARGIN);
+    this.ctx.stroke()
+    this.ctx.fill()
     this.ctx.closePath()
   }
 }

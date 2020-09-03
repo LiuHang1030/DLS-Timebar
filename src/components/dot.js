@@ -21,12 +21,10 @@ export default class dot {
     this.drawCircle(this.x, this.y)
   }
   drawCircle(x, y) {
-
     this.ctx.beginPath();
     this.ctx.fillStyle = `rgba(174,41,91,${this.alpha})`
     this.ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
     this.ctx.fill();
     this.ctx.closePath();
-
   }
 }

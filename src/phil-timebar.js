@@ -39,6 +39,7 @@ export default class PhilTimebar {
       slider: true,
       onTabClickHandle: (index) => {
         this.tabIndex = index
+        this.ruler.render()
       }
     })
     this.initial()
@@ -62,13 +63,20 @@ export default class PhilTimebar {
       minUnitWidth: this.minUnitWidth,
       maxUnitWidth: this.maxUnitWidth,
       unitWidth: this.unitWidth,
+      onClick: (e) => {
+        this.onClickHandle(e)
+      },
       onRender: (e) => {
-        const { screenStartTime, screenEndTime, totalHeight } = e
+        const { ruler, screenStartTime, screenEndTime, totalHeight } = e
+        this.screenStartTime = screenStartTime
+        this.screenEndTime = screenEndTime
+        this.ruler = ruler
+        this.totalHeight = totalHeight
         // this.nowPhilData = this.filterWithInPhilData(screenStartTime, screenEndTime)
         this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
-        this.calculatePosition(e)
+        this.calculatePosition()
         // this.drawQuote(e)
 
       }
@@ -81,6 +89,23 @@ export default class PhilTimebar {
     // let percent = (time - this.minYear) / totalTime / totalHeight
 
 
+  }
+  onClickHandle(e) {
+    const { pageX, pageY } = e
+    // 时间轴点击回调
+    let eastRenderList = this.eastRenderList.filter((item) => {
+      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
+    })
+    let hasClickNodeList = eastRenderList.filter((item) => {
+      const radius = this.CIRCLE_DIAMETER / 2
+      const x = item.y
+      const y = item.y
+      const minY = y - radius
+      const maxY = y + radius
+      const minX = x - radius
+      const maxX = x + radius
+    })
+    let westRenderList = this.filterWithInPhilData(this.eastRenderList, this.screenStartTime, this.screenEndTime)
   }
   createQuote() {
     this.eastQuote = $('<div></div>')
@@ -282,20 +307,17 @@ export default class PhilTimebar {
   }
   calculatePosition(e) {
     // tab栏进行东西方哲学家筛选功能
-    const { ruler, screenStartTime, screenEndTime, totalHeight } = e
-    this.screenStartTime = screenStartTime
-    this.screenEndTime = screenEndTime
-    this.ruler = ruler
-    if (totalHeight) {
-      this.centerPx = e.ruler.centerPx
+    if (this.totalHeight) {
+
+      this.centerPx = this.ruler.centerPx
       this.philData.forEach(phil => {
         const { originType, year } = phil
         phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-        phil.y = parseInt(ruler.getYbyTime(year))
-        phil.originY = parseInt(ruler.getYbyTime(year))
+        phil.y = parseInt(this.ruler.getYbyTime(year))
+        phil.originY = parseInt(this.ruler.getYbyTime(year))
       })
 
-      this.gapYear = ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - ruler.getTimeByPixel(0)
+      this.gapYear = this.ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - this.ruler.getTimeByPixel(0)
       this.eastLevel1Data = this.getLevelData(1.1, 'EAST')
       this.eastLevel2Data = this.getLevelData(1.2, 'EAST')
       this.eastLevel3Data = this.getLevelData(2, 'EAST')
@@ -312,82 +334,101 @@ export default class PhilTimebar {
       // this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
       // this.mapLowLevelNodeList(this.eastLevel3Data, this.renderList, this.eastLevel1Data)
       this.westRenderList = []
-      this.renderList = []
-      let westRenderList = []
-      let eastRenderList = []
+      this.eastRenderList = []
 
-      // westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
-      // eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.renderList)
-      westRenderList = this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
-      // console.log(westRenderList)
-      westRenderList.forEach(nowPhilNode => {
-        if (nowPhilNode.canDraw) {
-          this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-        } else {
-          this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+      if (this.tabIndex == 0) {
+        this.westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
+        this.westRenderList.forEach(nowPhilNode => {
+          if (nowPhilNode.canDraw) {
+            this.drawPhilQuote(nowPhilNode)
+            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+          } else {
+            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+          }
+        })
+      } else if (this.tabIndex == 1) {
+        this.westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
+        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
+        this.westRenderList.forEach(nowPhilNode => {
+          if (nowPhilNode.canDraw) {
+            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+          } else {
+            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+          }
+        })
+        this.eastRenderList.forEach(nowPhilNode => {
+          if (nowPhilNode.canDraw) {
+            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+          } else {
+            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+          }
+        })
+      } else if (this.tabIndex == 2) {
+        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
+        this.eastRenderList.forEach(nowPhilNode => {
+          if (nowPhilNode.canDraw) {
+            this.drawPhilQuote(nowPhilNode)
+            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+          } else {
+            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+          }
+        })
+      }
+
+
+
+      this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
+      this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
+
+
+      if (this.eastWithInData && !this.eastWithInData.length) {
+        // 如果屏幕内不存在任何东方节点
+        let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
+        if (quoteList) {
+          // 如果存在可显示的 quote
+          let $content = $('<div></div>')
+          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+          $content.append(title)
+          let desc = quoteList.bubbleDesc
+          $content.append(`<div class="quote-content">${desc}</div>`)
+          this.eastQuote.html($content)
+          this.eastQuote.addClass('show')
         }
-      })
-      eastRenderList.forEach(nowPhilNode => {
-        if (nowPhilNode.canDraw) {
-          this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-        } else {
-          this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+
+      } else {
+        this.eastQuote.removeClass('show')
+      }
+      if (this.westWithInData && !this.westWithInData.length) {
+        // 如果屏幕内不存在任何西方节点
+        let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
+        if (quoteList) {
+          // 如果存在可显示的 quote
+          let $content = $('<div></div>')
+          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+          $content.append(title)
+          let desc = quoteList.bubbleDesc
+          $content.append(`<div class="quote-content">${desc}</div>`)
+          this.westQuote.html($content)
+          this.westQuote.addClass('show')
         }
-      })
-      // if (this.tabIndex == 0) {
-      //   let renthis.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
-      //   this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
-      // } else if (this.tabIndex == 1) {
-      //   this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
-      //   this.mapHighLevelNodeList(this.eastLevel1Data, this.renderList)
-      //   this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
-      //   this.mapLowLevelNodeList(this.eastLevel3Data, this.renderList, this.eastLevel1Data)
-      // } else if (this.tabIndex == 2) {
-      //   this.mapHighLevelNodeList(this.eastLevel1Data, this.renderList)
-      //   this.mapLowLevelNodeList(this.eastLevel3Data, this.renderList, this.eastLevel1Data)
-      // }
-
-
-
-      let eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, screenStartTime, screenEndTime)
-      let westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, screenStartTime, screenEndTime)
-
-
-      // if (eastWithInData && !eastWithInData.length) {
-      //   // 如果屏幕内不存在任何东方节点
-      //   let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
-      //   if (quoteList) {
-      //     // 如果存在可显示的 quote
-      //     let $content = $('<div></div>')
-      //     let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-      //     $content.append(title)
-      //     let desc = quoteList.bubbleDesc
-      //     $content.append(`<div class="quote-content">${desc}</div>`)
-      //     this.eastQuote.html($content)
-      //     this.eastQuote.addClass('show')
-      //   }
-
-      // } else {
-      //   this.eastQuote.removeClass('show')
-      // }
-      // if (westWithInData && !westWithInData.length) {
-      //   // 如果屏幕内不存在任何西方节点
-      //   let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
-      //   if (quoteList) {
-      //     // 如果存在可显示的 quote
-      //     let $content = $('<div></div>')
-      //     let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-      //     $content.append(title)
-      //     let desc = quoteList.bubbleDesc
-      //     $content.append(`<div class="quote-content">${desc}</div>`)
-      //     this.westQuote.html($content)
-      //     this.westQuote.addClass('show')
-      //   }
-      // } else {
-      //   this.westQuote.removeClass('show')
-      // }
+      } else {
+        this.westQuote.removeClass('show')
+      }
 
     }
+  }
+  drawPhilQuote(nowPhilNode) {
+    const { y, saying, originType } = nowPhilNode
+
+    new Quote({
+      $html: this.$html,
+      canvas: this.canvas,
+      ctx: this.ctx,
+      originType,
+      y,
+      saying,
+      centerPx: this.centerPx
+    })
   }
   mapHighLevelNodeList(nodeList, renderList) {
     // console.log(nodeList)
@@ -465,16 +506,11 @@ export default class PhilTimebar {
     return nodeList.map((nowPhilNode, index) => {
       // 低优先级节点 需要上下比较已经存在的节点
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
-      console.log(nowPhilNode)
-      console.log(prevPhilNode)
-      console.log(nextPhilNode)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
-
       if (isPrevCoinCide && isNextCoinCide) {
         // 如果与上下节点都重合那么直接忽略
-        // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-        nowPhilNode.canDraw = false
+        // nowPhilNode.canDraw = false
         let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
         if (hasNodeList && hasNodeList.length) {
           let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -484,63 +520,69 @@ export default class PhilTimebar {
       } else {
         if (isPrevCoinCide && !isNextCoinCide) {
           // 如果与上一个级别已渲染节点重合，但是与下一个节点不重合的情况
-          // 尝试折线绘制
-          const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
-          nowPhilNode.angle = angle
-          nowPhilNode.y = angle * 120 + nowPhilNode.y
-          nowPhilNode.canDraw = true
-          // this.drawAvatar(nowPhilNode, angle)
-          if (renderList.every(item => item.id !== nowPhilNode.id)) {
-            renderList.push(nowPhilNode)
-          }
-          return nowPhilNode
-          // let cloneNowPhilNode = Object.assign({}, nowPhilNode)
-          // cloneNowPhilNode.angle = angle
-          // cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
-          // const nextIndexPhilNode = nodeList[index + 1] || {}
-          // const isNextCoinCide = this.checkIsCoinCide(nextIndexPhilNode, cloneNowPhilNode)
-          // if (!isNextCoinCide && nextPhilNode.angle == 0 && prevPhilNode.angle == 0) {
-          //   nowPhilNode.angle = angle
-          //   nowPhilNode.y = angle * 120 + nowPhilNode.y
-          //   nowPhilNode.canDraw = true
-          //   // this.drawAvatar(nowPhilNode, angle)
-          //   if (renderList.every(item => item.id !== nowPhilNode.id)) {
-          //     renderList.push(nowPhilNode)
-          //   }
-          //   return nowPhilNode
-          // } else {
-          //   // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          //   nowPhilNode.canDraw = false
-          //   let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-          //   if (hasNodeList && hasNodeList.length) {
-          //     let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-          //     renderList.splice(index, 1)
-          //   }
-          //   return nowPhilNode
-          // }
-
-
-        } else if (!isPrevCoinCide && !isNextCoinCide) {
-          // 如果与上下节点都不重合
-          // 尝试直线绘制
-          const prevIndexPhilNode = nodeList[index - 1]
-          if (prevIndexPhilNode && prevIndexPhilNode.year == nowPhilNode.year) {
-            const angle = this.calculateNowNodeAngle(prevIndexPhilNode, nowPhilNode)
+          if (prevPhilNode.angle > 0) {
+            // 如果上一个节点重合，并且上一个节点是折线绘制
+            nowPhilNode.canDraw = false
+            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+            if (hasNodeList && hasNodeList.length) {
+              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+              renderList.splice(index, 1)
+            }
+            return nowPhilNode
+          } else {
+            // 尝试折线绘制
+            // const nextIndexPhilNode = nodeList[index + 1] || {}
+            const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
             let cloneNowPhilNode = Object.assign({}, nowPhilNode)
             cloneNowPhilNode.angle = angle
             cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
             const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, cloneNowPhilNode)
+            // const isNextIndexCoinCide = this.checkIsCoinCide(nextIndexPhilNode, nowPhilNode)
+
             if (!isNextCoinCide) {
               nowPhilNode.angle = angle
               nowPhilNode.y = angle * 120 + nowPhilNode.y
               nowPhilNode.canDraw = true
-              // this.drawAvatar(nowPhilNode, angle)
               if (renderList.every(item => item.id !== nowPhilNode.id)) {
                 renderList.push(nowPhilNode)
               }
               return nowPhilNode
             } else {
-              // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+              nowPhilNode.canDraw = false
+              let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+              if (hasNodeList && hasNodeList.length) {
+                let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+                renderList.splice(index, 1)
+              }
+              return nowPhilNode
+            }
+
+          }
+
+
+
+
+        } else if (!isPrevCoinCide && !isNextCoinCide) {
+          // 如果与上下节点都不重合
+          // 尝试直线绘制
+
+          const prevIndexPhilNode = nodeList[index - 1] || {}
+
+          if (prevIndexPhilNode && prevIndexPhilNode.year == nowPhilNode.year) {
+            const angle = this.calculateNowNodeAngle(prevIndexPhilNode, nowPhilNode)
+            let cloneNowPhilNode = Object.assign({}, nowPhilNode)
+            cloneNowPhilNode.angle = angle
+            cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
+            const isNextCoinCide = this.checkIsCoinCide(prevIndexPhilNode, cloneNowPhilNode)
+            if (!isNextCoinCide) {
+              nowPhilNode.angle = angle
+              nowPhilNode.y = angle * 120 + nowPhilNode.y
+              nowPhilNode.canDraw = true
+              if (renderList.every(item => item.id !== nowPhilNode.id)) {
+                renderList.push(nowPhilNode)
+              }
+              return nowPhilNode
+            } else {
               nowPhilNode.canDraw = false
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
@@ -551,28 +593,44 @@ export default class PhilTimebar {
             }
 
           } else {
-            nowPhilNode.angle = 0
-            nowPhilNode.canDraw = true
-            // this.drawAvatar(nowPhilNode)
-            if (renderList.every(item => item.id !== nowPhilNode.id)) {
-              renderList.push(nowPhilNode)
+            const isNextCoinCide = this.checkIsCoinCide(prevIndexPhilNode, nowPhilNode)
+            if (!isNextCoinCide) {
+              nowPhilNode.angle = 0
+              nowPhilNode.canDraw = true
+              if (renderList.every(item => item.id !== nowPhilNode.id)) {
+                renderList.push(nowPhilNode)
+              }
+              return nowPhilNode
+            } else {
+              nowPhilNode.canDraw = false
+              let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+              if (hasNodeList && hasNodeList.length) {
+                let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+                renderList.splice(index, 1)
+              }
+              return nowPhilNode
             }
-            return nowPhilNode
+
           }
 
 
         } else if (!isPrevCoinCide && isNextCoinCide) {
           // 如果与上节点不重合，与下节点重合
+          // nowPhilNode.canDraw = false
+          // let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+          // if (hasNodeList && hasNodeList.length) {
+          //   let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+          //   renderList.splice(index, 1)
+          // }
+          // return nowPhilNode
           if (nextPhilNode.angle > 0) {
             nowPhilNode.angle = 0
             nowPhilNode.canDraw = true
-            // this.drawAvatar(nowPhilNode)
             if (renderList.every(item => item.id !== nowPhilNode.id)) {
               renderList.push(nowPhilNode)
             }
             return nowPhilNode
           } else {
-            // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             nowPhilNode.canDraw = false
             let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
             if (hasNodeList && hasNodeList.length) {
@@ -582,7 +640,6 @@ export default class PhilTimebar {
             return nowPhilNode
           }
         } else {
-          // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
           nowPhilNode.canDraw = false
           let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
           if (hasNodeList && hasNodeList.length) {
@@ -594,6 +651,7 @@ export default class PhilTimebar {
       }
 
     })
+
     // } else {
     //   // nodeList.forEach(nowPhilNode => {
     //   //   this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
@@ -894,6 +952,10 @@ export default class PhilTimebar {
         id: item.id
       }
     }).sort((m, n) => m.year - n.year)[0]
+    // if (nowPhilNode.itemName == '阿那克萨哥拉') {
+    //   console.log(nowPhilNode)
+    //   console.log(compareList)
+    // }
     let prevPhilNode = earlyNearestItem ? compareList.filter(item => item.id == earlyNearestItem.id)[0] : {}
     let nextPhilNode = latelyNearestItem ? compareList.filter(item => item.id == latelyNearestItem.id)[0] : {}
     return [prevPhilNode, nextPhilNode]

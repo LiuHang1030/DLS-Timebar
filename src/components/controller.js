@@ -35,6 +35,9 @@ export default class Controller {
       $tab.addClass('tab-item')
       $tab.html(tab.text)
       $tab.attr('index', tab.index)
+      if (tab.index == this.defaultIndex) {
+        $tab.addClass('active')
+      }
       this.$tabList.append($tab)
     })
 
@@ -44,9 +47,12 @@ export default class Controller {
 
   }
   bind() {
-    $('.tab-item').bind('click', () => {
+    let that = this
+    $('.tab-item').bind('click', function () {
       var index = $(".tab-item").index($(this));
-      this.onTabClickHandle(index)
+      $('.tab-item').removeClass('active')
+      $(this).addClass('active')
+      that.onTabClickHandle(index)
     })
   }
 }

@@ -77,6 +77,7 @@ export default class Timebar {
           fn(this, e)
         })
       },
+      onClick() { },
       onRender() { },
       onAnimateFinish() { }
     }, props);
@@ -187,10 +188,9 @@ export default class Timebar {
      * 为了减少绘制图形数量，采用bufferMinYear & bufferMaxYear的方式绘制，范围未前后一屏；
      * 使用两个循环，分别处理小于1年与1年之后的，保证1年一定存在
      */
-    this.ctx.strokeStyle = '#CAD2D6';
+
     this.ctx.fillStyle = '#999999';
     let loneLineCounter = 0;
-
 
 
 
@@ -283,6 +283,7 @@ export default class Timebar {
     let halfWidth = width / 2
     this.ctx.beginPath();
     this.ctx.lineWidth = 1;
+    this.ctx.strokeStyle = '#CAD2D6';
     this.ctx.moveTo(this.centerPx - halfWidth, y);
     this.ctx.lineTo(this.centerPx + halfWidth, y);
     this.ctx.stroke();
@@ -684,7 +685,7 @@ export default class Timebar {
   /**
    * mousedown event
    */
-  _mousedown() {
+  _mousedown(e) {
     this.isMousedown = true;
     this.mousedownPos = {
       x: this.mousePos.x,
@@ -693,6 +694,7 @@ export default class Timebar {
     this.downTranslate = {
       ...this.translate
     };
+    this.onClick(e)
   }
 
   /**

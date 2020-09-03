@@ -47,9 +47,6 @@ export default class Avatar {
     // img.onload = () => {
     //   this.drawRadiusImage(img, x, y, 100)
     // }
-
-
-    this.ctx.stroke()
   }
   drawText(text, x, y) {
     this.ctx.font = '12px sans-serif';
@@ -57,25 +54,22 @@ export default class Avatar {
     this.ctx.textAlign = 'center'
     this.ctx.textBaseline = 'bottom';
     this.ctx.fillText(text, x, y);
+    this.ctx.stroke()
   }
   drawRadiusImage(img, x, y, r) {
-    this.ctx.save();
     var d = 2 * r;
     var cx = x + r;
     var cy = y + r;
     this.ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     this.ctx.clip();
     this.ctx.drawImage(img, x, y, d, d);
-    this.ctx.restore();
   }
   drawRect(text, x, y, w = 50, h = 10) {
-    this.ctx.save()
     this.ctx.fillStyle = '#a0365b'
     this.ctx.fillRect(x - w / 2, y, w, h);
     this.ctx.strokeStyle = '#FFFFFF'
     this.ctx.fillText(text, x - w / 2, y);
     this.ctx.stroke()
-    this.ctx.restore()
   }
   drawLine(x, y, originY) {
     const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
@@ -83,10 +77,8 @@ export default class Avatar {
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
     gradient.addColorStop(1, "#AE295B");
-    this.ctx.save()
 
     this.ctx.lineWidth = 1;
-    this.ctx.fillStyle = 'yellow'
     if (this.originType === 'EAST') {
       if (this.angle > 0) {
         this.ctx.beginPath()
@@ -122,7 +114,6 @@ export default class Avatar {
     this.ctx.strokeStyle = gradient
     this.ctx.stroke()
     this.ctx.closePath()
-    this.ctx.restore()
 
 
   }
