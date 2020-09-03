@@ -79,7 +79,10 @@ export default class Timebar {
       },
       onClick() { },
       onRender() { },
-      onAnimateFinish() { }
+      onAnimateFinish() { },
+      store: {
+        scale: 1
+      }
     }, props);
 
 
@@ -109,7 +112,8 @@ export default class Timebar {
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-    this.render();
+    window.requestAnimationFrame(this.render.bind(this))
+    // this.render();
     this.bind();
 
 
@@ -138,7 +142,7 @@ export default class Timebar {
     this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
-    this.render();
+    // this.render();
     this.onChange({ resize: true });
   }
 
@@ -156,7 +160,7 @@ export default class Timebar {
       unitTime: this.unitTime,
       ruler: this
     }
-
+    window.requestAnimationFrame(this.render.bind(this))
     this.onRender(renderData);
     this.ctx.restore();
 
@@ -458,7 +462,7 @@ export default class Timebar {
       onUpdateParams: ['{ self }'],
       onUpdate: (tn) => {
         this.updateBufferYears();
-        this.render();
+        // this.render();
         if (cb) {
           cb()
         } else {
@@ -724,7 +728,7 @@ export default class Timebar {
 
 
       this.updateBufferYears();
-      this.render();
+      // this.render();
       this.onChange(this);
     }
 
@@ -746,11 +750,16 @@ export default class Timebar {
   }
 
   _touchstart(e) {
+    this.onClick(e)
     var touches = e.originalEvent.targetTouches;
-
+    this.store.originScale = this.store.scale || 1;
+    this.store.moveable = true;
     var events = touches[0];
     var events2 = touches[1];
-    this.isMousedown = true;
+
+
+
+
     this.mousedownPos = {
       x: events.clientX,
       y: events.clientY
@@ -770,7 +779,9 @@ export default class Timebar {
   }
   _touchmove(e) {
     // e.preventDefault();
-
+    if (!this.store.moveable) {
+      return;
+    }
     var touches = e.originalEvent.targetTouches;
 
     var events = touches[0];
@@ -793,13 +804,19 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        this.render();
+        // this.render();
         this.onChange(this);
       }
     }
 
     if (events2) {
       // 双指操作
+      if (!this.mousedownPos.x2) {
+        this.mousedownPos.x2 = events2.pageX;
+      }
+      if (!this.mousedownPos.y2) {
+        this.mousedownPos.xy = events2.pageY;
+      }
       var zoom = this.getDistance({
         x: events.pageX,
         y: events.pageY
@@ -814,16 +831,23 @@ export default class Timebar {
           x: this.mousedownPos.x2,
           y: this.mousedownPos.y2
         });
-      this.$html.find('p').html(`${zoom}`)
-      if (zoom < 1) {
+      var newScale = this.store.originScale * zoom;
+      if (newScale > 3) {
+        newScale = 3;
+      }
+      if (this.store.scale > newScale) {
         this._zoom(-this.zoomSpeed);
       } else {
         this._zoom(this.zoomSpeed);
       }
+      this.store.scale = newScale;
     }
   }
   _touchend(e) {
-
+    this.store.moveable = false;
+    // this.onClick(e)
+    delete this.mousedownPos.x2;
+    delete this.mousedownPos.y2;
   }
   getDistance(start, stop) {
     return Math.hypot(stop.x - start.x, stop.y - start.y);

@@ -30,8 +30,10 @@ export default class PhilTimebar {
       level3RenderList: [],
       westRenderList: [],
       eastRenderList: [],
-      tabIndex: 1
-
+      tabIndex: 1,
+      timebarTranslateY: 50,
+      quoteWidth: 120,
+      quoteHeight: 40
     }, props)
     this.controller = new Controller({
       $html: this.$html,
@@ -40,6 +42,7 @@ export default class PhilTimebar {
       onTabClickHandle: (index) => {
         this.tabIndex = index
         this.ruler.render()
+        this.clearQuote()
       }
     })
     this.initial()
@@ -64,9 +67,12 @@ export default class PhilTimebar {
       maxUnitWidth: this.maxUnitWidth,
       unitWidth: this.unitWidth,
       onClick: (e) => {
+        this.clearQuote()
         this.onClickHandle(e)
+
       },
       onRender: (e) => {
+
         const { ruler, screenStartTime, screenEndTime, totalHeight } = e
         this.screenStartTime = screenStartTime
         this.screenEndTime = screenEndTime
@@ -77,36 +83,96 @@ export default class PhilTimebar {
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
         this.calculatePosition()
-        // this.drawQuote(e)
 
       }
     })
-
-
-    // this.ruler.setTimeByOffset(-800, 2000, 0.5)
-    // let totalHeight = (this.maxYear - this.minYear) / 40 * 16
-    // let totalTime = this.maxYear - this.minYear
-    // let percent = (time - this.minYear) / totalTime / totalHeight
-
-
   }
   onClickHandle(e) {
+
+    const radius = this.CIRCLE_DIAMETER / 2
     const { pageX, pageY } = e
+    let clickQuote = false
+    const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
     // 时间轴点击回调
     let eastRenderList = this.eastRenderList.filter((item) => {
       return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
     })
-    let hasClickNodeList = eastRenderList.filter((item) => {
-      const radius = this.CIRCLE_DIAMETER / 2
-      const x = item.y
-      const y = item.y
-      const minY = y - radius
-      const maxY = y + radius
-      const minX = x - radius
-      const maxX = x + radius
+    let westRenderList = this.westRenderList.filter((item) => {
+      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
     })
-    let westRenderList = this.filterWithInPhilData(this.eastRenderList, this.screenStartTime, this.screenEndTime)
+    let nowScreenRenderList = eastRenderList.concat(westRenderList)
+
+
+
+    let hasClickNodeList = nowScreenRenderList.filter((item) => {
+      const { originType } = item
+      const x = item.x
+      const y = item.y + this.timebarTranslateY - zeroY
+
+
+      if (this.tabIndex == 0 || this.tabIndex == 2) {
+        const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
+        const quoteY = item.y + this.timebarTranslateY - zeroY
+
+        const quoteMinX = quoteX
+        const quoteMaxX = quoteX + this.quoteWidth
+        const quoteMinY = quoteY - this.quoteHeight / 2
+        const quoteMaxY = quoteY + this.quoteHeight / 2
+
+        const xWithInQuote = quoteMinX <= pageX && pageX <= quoteMaxX
+        const yWithInQuote = quoteMinY <= pageY && pageY <= quoteMaxY
+
+
+        const minY = y - radius
+        const maxY = y + radius
+        const minX = x - radius
+        const maxX = x + radius
+
+        const xWithIn = minX <= pageX && pageX <= maxX
+        const yWithIn = minY <= pageY && pageY <= maxY
+        if (xWithInQuote && yWithInQuote) {
+          clickQuote = true
+        }
+
+        return (xWithInQuote && yWithInQuote) || (xWithIn && yWithIn)
+      } else {
+        const minY = y - radius
+        const maxY = y + radius
+        const minX = x - radius
+        const maxX = x + radius
+
+        const xWithIn = minX <= pageX && pageX <= maxX
+        const yWithIn = minY <= pageY && pageY <= maxY
+
+        return xWithIn && yWithIn
+      }
+
+
+    })
+    console.log(hasClickNodeList)
+    if (hasClickNodeList && hasClickNodeList.length) {
+      const nowPhilNode = hasClickNodeList[0]
+      const { y, originType, saying } = nowPhilNode
+      if (clickQuote) {
+        const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
+        const quoteY = y - zeroY
+        const quoteMaxY = quoteY + this.quoteHeight / 2
+
+        let $quote = $(`<div>${saying.title}</div>`)
+        $quote.addClass('phil-quote')
+        $quote.css('left', quoteX)
+        $quote.css('top', quoteMaxY)
+        this.clearQuote()
+        this.$html.append($quote)
+      } else {
+
+      }
+
+
+    }
+
   }
+
   createQuote() {
     this.eastQuote = $('<div></div>')
     this.westQuote = $('<div></div>')
@@ -114,6 +180,9 @@ export default class PhilTimebar {
     this.westQuote.addClass('quote').addClass('west-quote')
     this.$html.append(this.eastQuote)
     this.$html.append(this.westQuote)
+  }
+  clearQuote() {
+    this.$html.find($('.phil-quote')).remove()
   }
   createMockData() {
     let mockData = []
@@ -347,8 +416,9 @@ export default class PhilTimebar {
           }
         })
       } else if (this.tabIndex == 1) {
-        this.westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
-        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
+
+
+        this.westRenderList = this.mapHighLevelNodeList(this.westLevel3Data, this.westRenderList)
         this.westRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -356,6 +426,7 @@ export default class PhilTimebar {
             this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
           }
         })
+        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
         this.eastRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -431,7 +502,6 @@ export default class PhilTimebar {
     })
   }
   mapHighLevelNodeList(nodeList, renderList) {
-    // console.log(nodeList)
     return nodeList.map((nowPhilNode, index) => {
       if (index == 0) {
         nowPhilNode.angle = 0
@@ -506,6 +576,10 @@ export default class PhilTimebar {
     return nodeList.map((nowPhilNode, index) => {
       // 低优先级节点 需要上下比较已经存在的节点
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
+      // console.log('---------')
+      // console.log(nowPhilNode)
+      // console.log(prevPhilNode)
+      // console.log(nextPhilNode)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
       if (isPrevCoinCide && isNextCoinCide) {
@@ -616,13 +690,6 @@ export default class PhilTimebar {
 
         } else if (!isPrevCoinCide && isNextCoinCide) {
           // 如果与上节点不重合，与下节点重合
-          // nowPhilNode.canDraw = false
-          // let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-          // if (hasNodeList && hasNodeList.length) {
-          //   let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-          //   renderList.splice(index, 1)
-          // }
-          // return nowPhilNode
           if (nextPhilNode.angle > 0) {
             nowPhilNode.angle = 0
             nowPhilNode.canDraw = true
