@@ -22,9 +22,8 @@ export default class Avatar {
 
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
-    this.createAvatar()
   }
-  createAvatar() {
+  draw() {
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
     this.drawCircle(this.x, this.y)
     this.drawText(this.philName, this.x, this.y + this.size + 20)
@@ -40,13 +39,9 @@ export default class Avatar {
     this.ctx.fill();
     this.ctx.stroke();
     // this.drawRect('I', x, y)
-    this.ctx.closePath();
-    // var img = new Image();
-    // img.src = '//pic.allhistory.com/T1hyYCB_hT1RCvBVdK.png?ch=604&cw=604&cx=107&cy=0&w=100&h=100';
 
-    // img.onload = () => {
-    //   this.drawRadiusImage(img, x, y, 100)
-    // }
+    this.ctx.closePath();
+
   }
   drawText(text, x, y) {
     this.ctx.font = '12px sans-serif';
@@ -57,12 +52,14 @@ export default class Avatar {
     this.ctx.stroke()
   }
   drawRadiusImage(img, x, y, r) {
+    this.ctx.save()
     var d = 2 * r;
     var cx = x + r;
     var cy = y + r;
     this.ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     this.ctx.clip();
     this.ctx.drawImage(img, x, y, d, d);
+    this.ctx.restore()
   }
   drawRect(text, x, y, w = 50, h = 10) {
     this.ctx.fillStyle = '#a0365b'

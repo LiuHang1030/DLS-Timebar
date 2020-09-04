@@ -117,7 +117,9 @@ export default class Timebar {
     this.bind();
 
 
-
+    // setTimeout(() => {
+    //   this.setTimeByOffset(-500, 1000)
+    // }, 3000)
   }
   createCanvas() {
     this.$html = $(document.createElement('div'))
@@ -453,10 +455,8 @@ export default class Timebar {
         time = this.maxYear - selectedDuration / 2;
       }
     }
-
     let newY = -this.getYbyTime(time) + this.centerHeight;
-
-
+    // this.$html.find($('p')).html(time)
     TweenLite.to(this.translate, animate, {
       y: newY,
       onUpdateParams: ['{ self }'],
@@ -493,8 +493,6 @@ export default class Timebar {
       newUnitTime,
       newUnitWidth
     } = timeMath.calcUnitBySelectedOffset(this, startTime, endTime);
-    // console.log(newUnitTime)
-    // console.log(newUnitWidth)
     this._zoomToSelectedOffset(startTime, endTime, newUnitTime, newUnitWidth, animate, cb)
 
 
@@ -575,6 +573,9 @@ export default class Timebar {
    * 缩放
    * @param {number} delta
    */
+  _touchZoom(delta) {
+
+  }
   _zoom(delta) {
 
 
@@ -592,7 +593,9 @@ export default class Timebar {
     /**
      * 获取现在中心时间
      */
+
     let centerTime = this.getTimeByPixel(this.centerHeight);
+
     /**
      * 计算缩放后的单位长度
      */
@@ -758,8 +761,6 @@ export default class Timebar {
     var events2 = touches[1];
 
 
-
-
     this.mousedownPos = {
       x: events.clientX,
       y: events.clientY
@@ -768,12 +769,14 @@ export default class Timebar {
       ...this.translate
     };
     if (events2) {
+      // 双指初次落点
       this.mousedownPos = {
         x: events.clientX,
         y: events.clientY,
         x2: events2.clientX,
         y2: events2.clientY,
       };
+      let centerY = Math.abs(this.mousedownPos.y - this.mousedownPos.y2)
     }
 
   }
@@ -811,26 +814,14 @@ export default class Timebar {
 
     if (events2) {
       // 双指操作
-      if (!this.mousedownPos.x2) {
-        this.mousedownPos.x2 = events2.pageX;
-      }
-      if (!this.mousedownPos.y2) {
-        this.mousedownPos.xy = events2.pageY;
-      }
-      var zoom = this.getDistance({
-        x: events.pageX,
-        y: events.pageY
-      }, {
-        x: events2.pageX,
-        y: events2.pageY
-      }) /
-        this.getDistance({
-          x: this.mousedownPos.x,
-          y: this.mousedownPos.y
-        }, {
-          x: this.mousedownPos.x2,
-          y: this.mousedownPos.y2
-        });
+      // if (!this.mousedownPos.x2) {
+      //   this.mousedownPos.x2 = events2.pageX;
+      // }
+      // if (!this.mousedownPos.y2) {
+      //   this.mousedownPos.y2 = events2.pageY;
+      // }
+      var zoom = (this.mousedownPos.y - events.pageY) - (this.mousedownPos.y2 - events2.pageY)
+      this.$html.find($('p')).html(zoom)
       var newScale = this.store.originScale * zoom;
       if (newScale > 3) {
         newScale = 3;
@@ -849,24 +840,22 @@ export default class Timebar {
     delete this.mousedownPos.x2;
     delete this.mousedownPos.y2;
   }
-  getDistance(start, stop) {
-    return Math.hypot(stop.x - start.x, stop.y - start.y);
-  }
+
   bind() {
 
-    $(window).on('resize.timebar', this._resize.bind(this))
-    $(window).on('mousemove.dls-map-timebar', this._mousemove.bind(this))
-    $(window).on('mouseup.dls-map-timebar', this._mouseup.bind(this))
+    $('#timebar').on('resize.timebar', this._resize.bind(this))
+    $('#timebar').on('mousemove.dls-map-timebar', this._mousemove.bind(this))
+    $('#timebar').on('mouseup.dls-map-timebar', this._mouseup.bind(this))
 
 
     let mouseEventDom = $(window);
     let toucheEventDom = $('#timebar')
 
 
-    mouseEventDom.on('mousewheel', this._mouseWheel.bind(this))
-    mouseEventDom.on('mousedown', this._mousedown.bind(this))
-    mouseEventDom.on('mouseenter', this._mouseenter.bind(this))
-    mouseEventDom.on('mouseleave', this._mouseleave.bind(this))
+    toucheEventDom.on('mousewheel', this._mouseWheel.bind(this))
+    toucheEventDom.on('mousedown', this._mousedown.bind(this))
+    toucheEventDom.on('mouseenter', this._mouseenter.bind(this))
+    toucheEventDom.on('mouseleave', this._mouseleave.bind(this))
 
     toucheEventDom.on('touchstart', this._touchstart.bind(this))
     toucheEventDom.on('touchmove', this._touchmove.bind(this))

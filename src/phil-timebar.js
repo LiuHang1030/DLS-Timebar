@@ -5,7 +5,8 @@ import Dot from './components/dot'
 import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
-import { mock } from 'mockjs'
+
+const SWITCH_LINE_HEIGHT = 15
 
 
 export default class PhilTimebar {
@@ -16,7 +17,7 @@ export default class PhilTimebar {
       nowPhilData: [], // 现在可显示的哲学家数据
       nowPeriodData: [], // 现在可显示的分期数据
       bubbles: [],
-      CIRCLE_DIAMETER: 100,
+      CIRCLE_DIAMETER: 50,
       BUBBLE_DIAMETER: 170,
       CIRCLE_GAP: 10,
       TEXT_AREA: 10,
@@ -33,8 +34,8 @@ export default class PhilTimebar {
       tabIndex: 1,
       timebarTranslateY: 50,
       quoteWidth: 120,
-      quoteHeight: 40
     }, props)
+    this.initial()
     this.controller = new Controller({
       $html: this.$html,
       tab: true,
@@ -43,9 +44,21 @@ export default class PhilTimebar {
         this.tabIndex = index
         this.ruler.render()
         this.clearQuote()
+      },
+      onSliderClickHandle: (index) => {
+        // 改变缩放层级
+        switch (index) {
+          case 1:
+
+            break;
+          case 2:
+            break;
+          case 3:
+            break;
+        }
       }
     })
-    this.initial()
+
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
     this.westBubbles = this.bubbles.filter(item => item.originType == 'WEST')
@@ -72,18 +85,15 @@ export default class PhilTimebar {
 
       },
       onRender: (e) => {
-
         const { ruler, screenStartTime, screenEndTime, totalHeight } = e
         this.screenStartTime = screenStartTime
         this.screenEndTime = screenEndTime
         this.ruler = ruler
         this.totalHeight = totalHeight
-        // this.nowPhilData = this.filterWithInPhilData(screenStartTime, screenEndTime)
         this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
         this.calculatePosition()
-
       }
     })
   }
@@ -105,19 +115,24 @@ export default class PhilTimebar {
 
 
     let hasClickNodeList = nowScreenRenderList.filter((item) => {
-      const { originType } = item
+      const { originType, switchLine } = item
+
+
       const x = item.x
       const y = item.y + this.timebarTranslateY - zeroY
+
 
 
       if (this.tabIndex == 0 || this.tabIndex == 2) {
         const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
         const quoteY = item.y + this.timebarTranslateY - zeroY
+        const quoteHeight = 40
 
         const quoteMinX = quoteX
         const quoteMaxX = quoteX + this.quoteWidth
-        const quoteMinY = quoteY - this.quoteHeight / 2
-        const quoteMaxY = quoteY + this.quoteHeight / 2
+        // switchLine 为 true 需要扩大范围
+        const quoteMinY = quoteY - quoteHeight / 2
+        const quoteMaxY = switchLine ? quoteY + (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY + quoteHeight / 2
 
         const xWithInQuote = quoteMinX <= pageX && pageX <= quoteMaxX
         const yWithInQuote = quoteMinY <= pageY && pageY <= quoteMaxY
@@ -149,26 +164,12 @@ export default class PhilTimebar {
 
 
     })
-    console.log(hasClickNodeList)
     if (hasClickNodeList && hasClickNodeList.length) {
-      const nowPhilNode = hasClickNodeList[0]
-      const { y, originType, saying } = nowPhilNode
       if (clickQuote) {
-        const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
-        const quoteY = y - zeroY
-        const quoteMaxY = quoteY + this.quoteHeight / 2
-
-        let $quote = $(`<div>${saying.title}</div>`)
-        $quote.addClass('phil-quote')
-        $quote.css('left', quoteX)
-        $quote.css('top', quoteMaxY)
-        this.clearQuote()
-        this.$html.append($quote)
+        this.showQuote(hasClickNodeList[0])
       } else {
-
+        // 弹出跳转 APP 登录框
       }
-
-
     }
 
   }
@@ -180,6 +181,34 @@ export default class PhilTimebar {
     this.westQuote.addClass('quote').addClass('west-quote')
     this.$html.append(this.eastQuote)
     this.$html.append(this.westQuote)
+    this.$html.append($(document.createElement('p')))
+  }
+  showQuote(nowPhilNode) {
+    const { y, originType, saying, switchLine } = nowPhilNode
+    const QUOTE_MAX_HEIGHT = 150
+    const radius = this.CIRCLE_DIAMETER / 2
+    const WINDOW_HEIGHT = this.$html.height()
+    const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
+    const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
+    const quoteCenterY = y - zeroY
+    const quoteHeight = 40
+    const quoteMinY = quoteCenterY - (quoteHeight / 2) - QUOTE_MAX_HEIGHT
+    const quoteMaxY = switchLine ? quoteCenterY + quoteHeight / 2 + 15 : quoteCenterY + quoteHeight / 2
+
+
+    let $quote = $(`<div>${saying.title}</div>`)
+    $quote.addClass('phil-quote')
+    $quote.css('left', quoteX)
+    if (y + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT) {
+      $quote.css('top', quoteMinY)
+      $quote.css('borderBottom', 'none')
+    } else {
+      $quote.css('top', quoteMaxY)
+      $quote.css('borderTop', 'none')
+    }
+    $quote.css('height', QUOTE_MAX_HEIGHT)
+    this.clearQuote()
+    this.$html.append($quote)
   }
   clearQuote() {
     this.$html.find($('.phil-quote')).remove()
@@ -298,6 +327,16 @@ export default class PhilTimebar {
     this.$html = $html
     this.$body = $('body')[0]
 
+
+    this.eastLevel1Data = this.getLevelData(1.1, 'EAST')
+    this.eastLevel2Data = this.getLevelData(1.2, 'EAST')
+    this.eastLevel3Data = this.getLevelData(2, 'EAST')
+    this.eastLevel4Data = this.getLevelData(3, 'EAST')
+    this.westLevel1Data = this.getLevelData(1.1, 'WEST')
+    this.westLevel2Data = this.getLevelData(1.2, 'WEST')
+    this.westLevel3Data = this.getLevelData(2, 'WEST')
+    this.westLevel4Data = this.getLevelData(3, 'WEST')
+
   }
   drawBubble(title, desc) {
     let $container = $('<div></div>')
@@ -308,7 +347,6 @@ export default class PhilTimebar {
   checkIsCoinCide(compareNode, nowNode, checkAngle = false) {
     if (checkAngle) {
       if (compareNode.year < nowNode.year) {
-
         // prevNode
         // 当前节点与上一个节点是否重合，只需要比较当前节点的最小 Y 值是否大于上个节点的最大值  
         const prevNodeTranslate = compareNode.angle && compareNode.angle >= 0 ? compareNode.angle * 100 : 0
@@ -336,7 +374,7 @@ export default class PhilTimebar {
 
       const y = compareNode.y
       const minY = y - this.CIRCLE_DIAMETER
-      const maxY = y + this.CIRCLE_DIAMETER
+      const maxY = y + this.CIRCLE_DIAMETER + 50
       const targetY = nowNode.y
       return minY <= targetY && targetY <= maxY
     }
@@ -358,19 +396,32 @@ export default class PhilTimebar {
   }
   drawAvatar(avatarData, angle = 0) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y, originY } = avatarData
-      new Avatar({
-        $html: this.$html,
-        ctx: this.ctx,
-        canvas: this.canvas,
-        originType,
-        philName: itemName,
-        born: timeStr,
-        angle,
-        x,
-        y,
-        originY
-      })
+      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl } = avatarData
+      if (!window[itemId]) {
+        window[itemId] = new Avatar({
+          $html: this.$html,
+          ctx: this.ctx,
+          canvas: this.canvas,
+          avatarUrl,
+          originType,
+          philName: itemName,
+          born: timeStr,
+          angle,
+          x,
+          y,
+          originY
+        })
+        window[itemId].draw()
+      } else {
+        window[itemId].x = x
+        window[itemId].y = y
+        window[itemId].originType = originType
+        window[itemId].itemName = itemName
+        window[itemId].timeStr = timeStr
+        window[itemId].originY = originY
+        window[itemId].avatarUrl = avatarUrl
+        window[itemId].draw()
+      }
     }
 
   }
@@ -387,26 +438,11 @@ export default class PhilTimebar {
       })
 
       this.gapYear = this.ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - this.ruler.getTimeByPixel(0)
-      this.eastLevel1Data = this.getLevelData(1.1, 'EAST')
-      this.eastLevel2Data = this.getLevelData(1.2, 'EAST')
-      this.eastLevel3Data = this.getLevelData(2, 'EAST')
-      this.eastLevel4Data = this.getLevelData(3, 'EAST')
-      this.westLevel1Data = this.getLevelData(1.1, 'WEST')
-      this.westLevel2Data = this.getLevelData(1.2, 'WEST')
-      this.westLevel3Data = this.getLevelData(2, 'WEST')
-      this.westLevel4Data = this.getLevelData(3, 'WEST')
-      // this.westLevel3Data.forEach((nowPhilNode) => {
-      //   this.drawAvatar(nowPhilNode)
-      // })
-      // this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
-      // this.mapHighLevelNodeList(this.eastLevel1Data, this.renderList)
-      // this.mapLowLevelNodeList(this.westLevel3Data, this.westRenderList, this.westLevel1Data)
-      // this.mapLowLevelNodeList(this.eastLevel3Data, this.renderList, this.eastLevel1Data)
       this.westRenderList = []
       this.eastRenderList = []
 
       if (this.tabIndex == 0) {
-        this.westRenderList = this.mapHighLevelNodeList(this.westLevel1Data, this.westRenderList)
+        this.westRenderList = this.mapHighLevelNodeList('WEST')
         this.westRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawPhilQuote(nowPhilNode)
@@ -418,7 +454,7 @@ export default class PhilTimebar {
       } else if (this.tabIndex == 1) {
 
 
-        this.westRenderList = this.mapHighLevelNodeList(this.westLevel3Data, this.westRenderList)
+        this.westRenderList = this.mapHighLevelNodeList('WEST')
         this.westRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -426,7 +462,7 @@ export default class PhilTimebar {
             this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
           }
         })
-        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
+        this.eastRenderList = this.mapHighLevelNodeList('EAST')
         this.eastRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -435,7 +471,7 @@ export default class PhilTimebar {
           }
         })
       } else if (this.tabIndex == 2) {
-        this.eastRenderList = this.mapHighLevelNodeList(this.eastLevel1Data, this.eastRenderList)
+        this.eastRenderList = this.mapHighLevelNodeList('EAST')
         this.eastRenderList.forEach(nowPhilNode => {
           if (nowPhilNode.canDraw) {
             this.drawPhilQuote(nowPhilNode)
@@ -491,7 +527,7 @@ export default class PhilTimebar {
   drawPhilQuote(nowPhilNode) {
     const { y, saying, originType } = nowPhilNode
 
-    new Quote({
+    let quote = new Quote({
       $html: this.$html,
       canvas: this.canvas,
       ctx: this.ctx,
@@ -500,9 +536,12 @@ export default class PhilTimebar {
       saying,
       centerPx: this.centerPx
     })
+    nowPhilNode.switchLine = quote.switchLine
   }
-  mapHighLevelNodeList(nodeList, renderList) {
-    return nodeList.map((nowPhilNode, index) => {
+  mapHighLevelNodeList(originType) {
+    let renderList = originType == 'EAST' ? this.renderList : this.westRenderList
+    let highLevelNodeList = originType == 'EAST' ? this.eastLevel1Data : this.westLevel1Data
+    let highLevelRenderList = highLevelNodeList.map((nowPhilNode, index) => {
       if (index == 0) {
         nowPhilNode.angle = 0
         nowPhilNode.canDraw = true
@@ -517,7 +556,7 @@ export default class PhilTimebar {
         const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
 
         // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
-        const hasNotDrawNode = this.findEarlyButNotDrawNode(nodeList, renderList, nowPhilNode)
+        const hasNotDrawNode = this.findEarlyButNotDrawNode(highLevelNodeList, renderList, nowPhilNode)
         if (!hasNotDrawNode) {
           // 判断当前节点是否与已渲染列表中的上下节点重合
           const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
@@ -568,11 +607,24 @@ export default class PhilTimebar {
           return nowPhilNode
         }
       }
-
     })
+    if (highLevelRenderList.every(item => item.canDraw)) {
+      // let lowLevelRenderList = this.mapLowLevelNodeList()
+      // return highLevelRenderList.concat(lowLevelRenderList)
+      return highLevelRenderList
+    } else {
+
+      let hasNodeList = renderList.filter(item => {
+        return item.importance == 2 || item.importance == 3
+      })
+      if (hasNodeList && hasNodeList.length) {
+        renderList = renderList.filter(item => !hasNodeList.some(ele => ele.id === item.id));
+      }
+      return highLevelRenderList
+    }
   }
   mapLowLevelNodeList(nodeList, renderList, highLevelNodeList) {
-    // if (highLevelNodeList.every(item => item.canDraw)) {
+
     return nodeList.map((nowPhilNode, index) => {
       // 低优先级节点 需要上下比较已经存在的节点
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
@@ -719,17 +771,6 @@ export default class PhilTimebar {
 
     })
 
-    // } else {
-    //   // nodeList.forEach(nowPhilNode => {
-    //   //   this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-    //   // })
-    //   let hasNodeList = renderList.filter(item => {
-    //     return item.importance == 2 || item.importance == 3
-    //   })
-    //   if (hasNodeList && hasNodeList.length) {
-    //     renderList = renderList.filter(item => !hasNodeList.some(ele => ele.id === item.id));
-    //   }
-    // }
   }
   mapMockHighLevelNodeList(zoom, totalHeight, nodelist, renderList) {
 
@@ -905,7 +946,7 @@ export default class PhilTimebar {
    */
   calculateNowNodeAngle(referNode, nowNode) {
     const originY = nowNode.y
-    const prevNodeMaxY = referNode.y + this.CIRCLE_DIAMETER
+    const prevNodeMaxY = referNode.y + this.CIRCLE_DIAMETER + 50
     const triangleHeight = prevNodeMaxY - originY
     const triangleLong = 100
     const hypotenuse = Math.sqrt((Math.pow(triangleHeight, 2) + Math.pow(triangleLong, 2)))

@@ -33,7 +33,7 @@ export default class Quote {
   }
   drawRoundedRect(ctx, x, y, width, height, radius, type) {
     ctx.beginPath();
-    ctx.strokeStyle = '#FFFFFF'
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.36)'
     ctx.lineWidth = 1
     ctx.stroke()
     ctx.moveTo(x, y + radius);

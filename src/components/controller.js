@@ -2,9 +2,18 @@ export default class Controller {
   constructor(props) {
     Object.assign(this, {
       container: document.body,
+      $html: '',
       tab: true,
       slider: true,
-      defaultIndex: 1,
+      sliderDefaultIndex: 0,
+      tabDefaultIndex: 1,
+      sliderOptions: [{
+        index: 0
+      }, {
+        index: 1
+      }, {
+        index: 2
+      }],
       tabOptions: [{
         text: '西方',
         index: 0
@@ -17,15 +26,19 @@ export default class Controller {
       }],
       onTabClickHandle: () => {
 
+      },
+      onSliderClickHandle: () => {
+
       }
     }, props)
     if (this.tab) {
       this.createTab()
-      this.bind()
+
     }
     if (this.slider) {
       this.createSlider()
     }
+    this.bind()
   }
   createTab() {
     this.$tabList = $('<ul></ul>')
@@ -35,7 +48,7 @@ export default class Controller {
       $tab.addClass('tab-item')
       $tab.html(tab.text)
       $tab.attr('index', tab.index)
-      if (tab.index == this.defaultIndex) {
+      if (tab.index == this.tabDefaultIndex) {
         $tab.addClass('active')
       }
       this.$tabList.append($tab)
@@ -44,6 +57,21 @@ export default class Controller {
     this.container.appendChild(this.$tabList[0])
   }
   createSlider() {
+    this.$sliderList = $('<ul></ul>')
+    this.$sliderList.addClass('slider-list')
+    let text = $(document.createElement('span'))
+    text.html('重要级')
+    this.$sliderList.append(text)
+    this.sliderOptions.forEach(slider => {
+      let $slider = $('<li></li>')
+      $slider.addClass('slider-item')
+      $slider.attr('index', slider.index)
+      if (slider.index == this.sliderDefaultIndex) {
+        $slider.addClass('active')
+      }
+      this.$sliderList.append($slider)
+    })
+    this.$html.append(this.$sliderList[0])
 
   }
   bind() {
@@ -53,6 +81,12 @@ export default class Controller {
       $('.tab-item').removeClass('active')
       $(this).addClass('active')
       that.onTabClickHandle(index)
+    })
+    $('.slider-item').bind('click', function () {
+      var index = $(".slider-item").index($(this));
+      $('.slider-item').removeClass('active')
+      $(this).addClass('active')
+      that.onSliderClickHandle(index)
     })
   }
 }
