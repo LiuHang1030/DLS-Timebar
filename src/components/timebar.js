@@ -112,8 +112,8 @@ export default class Timebar {
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-    window.requestAnimationFrame(this.render.bind(this))
-    // this.render();
+    // window.requestAnimationFrame(this.render.bind(this))
+    this.render();
     this.bind();
 
 
@@ -144,13 +144,13 @@ export default class Timebar {
     this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
-    // this.render();
+    this.render();
     this.onChange({ resize: true });
   }
 
   render() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.save();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
     this.drawUnit();
@@ -162,7 +162,7 @@ export default class Timebar {
       unitTime: this.unitTime,
       ruler: this
     }
-    window.requestAnimationFrame(this.render.bind(this))
+    // window.requestAnimationFrame(this.render.bind(this))
     this.onRender(renderData);
     this.ctx.restore();
 
@@ -462,7 +462,7 @@ export default class Timebar {
       onUpdateParams: ['{ self }'],
       onUpdate: (tn) => {
         this.updateBufferYears();
-        // this.render();
+        this.render();
         if (cb) {
           cb()
         } else {
@@ -660,7 +660,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-
+    this.render()
     /**
      * 触发外部事件
      */
@@ -731,15 +731,16 @@ export default class Timebar {
 
 
       this.updateBufferYears();
-      // this.render();
+      this.render();
       this.onChange(this);
     }
 
-
   }
 
-  _mouseup() {
+  _mouseup(e) {
     this.mousedownPos = false;
+
+
   }
 
   /**
@@ -760,6 +761,12 @@ export default class Timebar {
     var events = touches[0];
     var events2 = touches[1];
 
+    // const centerY = events.clientY
+    // const screenStartTime = parseInt(this.getTimeByPixel(0))
+    // const screenStartTimeY = this.getYbyTime(screenStartTime)
+    // // const clickTime = parseInt()
+    // this.$html.find($('p')).html(clickTime)
+
 
     this.mousedownPos = {
       x: events.clientX,
@@ -776,7 +783,7 @@ export default class Timebar {
         x2: events2.clientX,
         y2: events2.clientY,
       };
-      let centerY = Math.abs(this.mousedownPos.y - this.mousedownPos.y2)
+
     }
 
   }
@@ -807,31 +814,29 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        // this.render();
+        this.render();
         this.onChange(this);
       }
     }
 
     if (events2) {
       // 双指操作
-      // if (!this.mousedownPos.x2) {
-      //   this.mousedownPos.x2 = events2.pageX;
-      // }
-      // if (!this.mousedownPos.y2) {
-      //   this.mousedownPos.y2 = events2.pageY;
-      // }
-      var zoom = (this.mousedownPos.y - events.pageY) - (this.mousedownPos.y2 - events2.pageY)
-      this.$html.find($('p')).html(zoom)
-      var newScale = this.store.originScale * zoom;
-      if (newScale > 3) {
-        newScale = 3;
+      if (!this.mousedownPos.x2) {
+        this.mousedownPos.x2 = events2.pageX;
       }
-      if (this.store.scale > newScale) {
-        this._zoom(-this.zoomSpeed);
-      } else {
-        this._zoom(this.zoomSpeed);
+      if (!this.mousedownPos.y2) {
+        this.mousedownPos.y2 = events2.pageY;
       }
-      this.store.scale = newScale;
+      // var zoom = Math.max((this.mousedownPos.y - events.pageY) / 100, (events2.pageY - this.mousedownPos.y2) / 100)
+      // let translateY = `${(this.mousedownPos.y - events.pageY) / 100},${(events2.pageY - this.mousedownPos.y2) / 100}`
+
+      // this.$html.find($('p')).html(translateY)
+      // var newScale = this.store.originScale * zoom;
+      // if (newScale > 3) {
+      //   newScale = 3;
+      // }
+      // // this._zoom(zoom);
+      // this.store.scale = newScale;
     }
   }
   _touchend(e) {
