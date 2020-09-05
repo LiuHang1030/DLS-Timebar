@@ -902,6 +902,7 @@ export default class Timebar {
         this.render();
         this.onChange(this);
 
+
       }
     }
 
