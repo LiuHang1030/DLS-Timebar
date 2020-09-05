@@ -575,6 +575,93 @@ export default class Timebar {
    */
   _touchZoom(delta) {
 
+
+    /**
+     * 定义新的参数
+     */
+    let newUnitWidth = this.unitWidth;
+    let newUnitTime = this.unitTime;
+    newUnitWidth += delta;
+
+
+
+
+
+    /**
+     * 获取现在中心时间
+     */
+
+    let centerTime = this.getTimeByPixel(parseInt(this.getYbyTime(this.getTimeByPixel(0))) + this.touchCenterY);
+
+    /**
+     * 计算缩放后的单位长度
+     */
+    let zoomRatio = this.maxUnitWidth / this.minUnitWidth;
+
+
+
+    if (newUnitWidth > this.maxUnitWidth) {
+      if (this.unitTime <= this.minUnitTime) {
+        return
+      }
+      newUnitWidth = this.minUnitWidth;
+      newUnitTime = Math.floor(this.unitTime / zoomRatio);
+    }
+
+
+    if (newUnitWidth < this.minUnitWidth) {
+      if (this.unitTime >= this.maxUnitTime) {
+        return
+      }
+      newUnitWidth = this.maxUnitWidth;
+      /**
+       * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
+       */
+      newUnitTime = this.unitTime * zoomRatio;
+    }
+
+
+    /**
+     * 如果缩放超过边界值，则不做任何处理，直接return
+     */
+    /**
+     * 如果10个刻度小于一年则不再缩放
+     */
+    let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
+    if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
+      return;
+    }
+
+
+    /**
+     * 更新数值
+     */
+    this.unitTime = newUnitTime;
+    this.unitWidth = newUnitWidth;
+
+
+    /**
+     * 更新总长度
+     */
+    this.updateTotalWidth();
+    this.setCenterByTime(centerTime);
+    this._fixOverFlowTranslate(this.translate.y);
+
+    this.updateBufferYears();
+
+    /**
+     * 如果总的可选区域小于offsetAreaDuration时间跨度，则固定为时间跨度的宽度
+     */
+    if (offsetAreaDuration >= this.maxYear - this.minYear) {
+      this.setTimeByOffset(this.minYear, this.maxYear);
+    }
+
+    // _zoom 方法中不再执行 render函数
+    this.render()
+    /**
+     * 触发外部事件
+     */
+    this.onChange(this);
   }
   _zoom(delta) {
 
@@ -761,11 +848,6 @@ export default class Timebar {
     var events = touches[0];
     var events2 = touches[1];
 
-    // const centerY = events.clientY
-    // const screenStartTime = parseInt(this.getTimeByPixel(0))
-    // const screenStartTimeY = this.getYbyTime(screenStartTime)
-    // // const clickTime = parseInt()
-    // this.$html.find($('p')).html(clickTime)
 
 
     this.mousedownPos = {
@@ -783,6 +865,7 @@ export default class Timebar {
         x2: events2.clientX,
         y2: events2.clientY,
       };
+      this.touchCenterY = (this.mousedownPos.y2 - this.mousedownPos.y) / 2
 
     }
 
@@ -796,6 +879,8 @@ export default class Timebar {
 
     var events = touches[0];
     var events2 = touches[1];
+
+
 
     if (events) {
       // 单指操作
@@ -816,6 +901,7 @@ export default class Timebar {
         this.updateBufferYears();
         this.render();
         this.onChange(this);
+
       }
     }
 
@@ -827,23 +913,37 @@ export default class Timebar {
       if (!this.mousedownPos.y2) {
         this.mousedownPos.y2 = events2.pageY;
       }
-      // var zoom = Math.max((this.mousedownPos.y - events.pageY) / 100, (events2.pageY - this.mousedownPos.y2) / 100)
-      // let translateY = `${(this.mousedownPos.y - events.pageY) / 100},${(events2.pageY - this.mousedownPos.y2) / 100}`
 
-      // this.$html.find($('p')).html(translateY)
+      this.mousePos.x = events.clientX;
+      this.mousePos.x2 = events2.clientX
+      this.mousePos.y = events.clientY;
+      this.mousePos.y2 = events2.clientY
+
+      // let delatY = Math.max(this.mousePos.y - this.mousedownPos.y, this.mousePos.y2 - this.mousedownPos.y2);
+      // let newY = this.downTranslate.y + delatY;
+      // this._fixOverFlowTranslate(newY)
+      // this.updateBufferYears();
+      // this.render();
+      // this.onChange(this);
+
+      // var zoom = (- parseInt(((events.pageY - this.mousedownPos.y) - (events2.pageY - this.mousedownPos.y2)) / 2) * 0.01).toFixed(2)
+      // this._touchZoom(zoom)
+      // // var zoom = Math.max((this.mousedownPos.y - events.pageY) / 100, (events2.pageY - this.mousedownPos.y2) / 100)
+      // // let translateY = `${(this.mousedownPos.y - events.pageY) / 100},${(events2.pageY - this.mousedownPos.y2) / 100}`
+      // this.$html.find($('p')).html(zoom)
       // var newScale = this.store.originScale * zoom;
       // if (newScale > 3) {
       //   newScale = 3;
       // }
-      // // this._zoom(zoom);
+
       // this.store.scale = newScale;
     }
   }
   _touchend(e) {
-    this.store.moveable = false;
+    // this.store.moveable = false;
     // this.onClick(e)
-    delete this.mousedownPos.x2;
-    delete this.mousedownPos.y2;
+    // delete this.mousedownPos.x2;
+    // delete this.mousedownPos.y2;
   }
 
   bind() {

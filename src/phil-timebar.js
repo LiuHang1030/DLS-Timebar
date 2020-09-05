@@ -346,6 +346,7 @@ export default class PhilTimebar {
     this.eastLevel3Data = this.getLevelData(2, 'EAST')
     this.eastLevel4Data = this.getLevelData(3, 'EAST')
     this.westLevel1Data = this.getLevelData(1.1, 'WEST')
+    console.log(this.westLevel1Data)
     this.westLevel2Data = this.getLevelData(1.2, 'WEST')
     this.westLevel3Data = this.getLevelData(2, 'WEST')
     this.westLevel4Data = this.getLevelData(3, 'WEST')
@@ -360,18 +361,18 @@ export default class PhilTimebar {
   checkIsCoinCide(compareNode, nowNode) {
 
     if (compareNode.year <= nowNode.year) {
-      const y = compareNode.angle ? compareNode.y + compareNode.angle * 100 : compareNode.y
+      const y = compareNode.angle ? compareNode.y + compareNode.angle * 120 : compareNode.y
       const minY = y - this.CIRCLE_DIAMETER
-      const maxY = y + this.CIRCLE_DIAMETER
+      const maxY = y + this.CIRCLE_DIAMETER + 50
       const targetY = nowNode.y
       const targetMinY = targetY - this.CIRCLE_DIAMETER
       return targetMinY < maxY
     } else {
-      const y = compareNode.angle ? compareNode.y + compareNode.angle * 100 : compareNode.y
+      const y = compareNode.angle ? compareNode.y + compareNode.angle * 120 : compareNode.y
       const minY = y - this.CIRCLE_DIAMETER
       const maxY = y + this.CIRCLE_DIAMETER
       const targetY = nowNode.y
-      const targetMaxY = targetY
+      const targetMaxY = targetY + this.CIRCLE_DIAMETER + 50
       return targetMaxY > minY
     }
 
@@ -385,15 +386,15 @@ export default class PhilTimebar {
   getLevelData(level, originType) {
     const list = this.philData.concat([])
     if (originType) {
-      return list.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
+      return list.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year - n.year)
     } else {
-      return list.filter(phil => phil.importance == level).sort((m, n) => m.year < n.year)
+      return list.filter(phil => phil.importance == level).sort((m, n) => m.year - n.year)
     }
 
   }
   drawAvatar(avatarData, angle = 0) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl } = avatarData
+      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle } = avatarData
       if (!window[itemId]) {
         window[itemId] = new Avatar({
           $html: this.$html,
@@ -413,9 +414,10 @@ export default class PhilTimebar {
         window[itemId].x = x
         window[itemId].y = y
         window[itemId].originType = originType
-        window[itemId].itemName = itemName
-        window[itemId].timeStr = timeStr
+        window[itemId].philName = itemName
+        window[itemId].born = timeStr
         window[itemId].originY = originY
+        window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
         window[itemId].draw()
       }
@@ -551,16 +553,11 @@ export default class PhilTimebar {
 
         // 获取当前节点的前一个节点和下一个节点
         const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
-        console.log(nowPhilNode)
         // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
         const hasNotDrawNode = this.findEarlyButNotDrawNode(highLevelNodeList, renderList, nowPhilNode)
         if (!hasNotDrawNode) {
           // 判断当前节点是否与已渲染列表中的上下节点重合
           const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
-          // console.log(nowPhilNode)
-          // console.log(prevPhilNode)
-          // console.log(isPrevCoinCide)
-
           if (isPrevCoinCide) {
             // 如果当前节点与上一个节点重合
             if (prevPhilNode.angle > 0) {
@@ -580,10 +577,8 @@ export default class PhilTimebar {
               // 需要折线处理的节点
               const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
               nowPhilNode.angle = angle
-              nowPhilNode.y = angle * 100 + nowPhilNode.y
+              nowPhilNode.y = angle * 120 + nowPhilNode.y
               nowPhilNode.canDraw = true
-
-
               if (renderList.every(item => item.id !== nowPhilNode.id)) {
                 renderList.push(nowPhilNode)
               }
