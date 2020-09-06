@@ -33,6 +33,7 @@ export default class Timebar {
       minUnitTime: 1, // 最小刻度
       maxUnitTime: 40, // 最大刻度
       zoomSpeed: 0.5,
+      touchZoomSpeed: 0.25,
       zoom: 1,
       unitWidth: 16,
       mousePos: {
@@ -117,9 +118,7 @@ export default class Timebar {
     this.bind();
 
 
-    // setTimeout(() => {
-    //   this.setTimeByOffset(-500, 1000)
-    // }, 3000)
+
   }
   createCanvas() {
     this.$html = $(document.createElement('div'))
@@ -144,13 +143,13 @@ export default class Timebar {
     this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
-    this.render();
+    // this.render();
     this.onChange({ resize: true });
   }
 
   render() {
-    this.ctx.save();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.save();
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
     this.drawUnit();
@@ -162,7 +161,7 @@ export default class Timebar {
       unitTime: this.unitTime,
       ruler: this
     }
-    // window.requestAnimationFrame(this.render.bind(this))
+    window.requestAnimationFrame(this.render.bind(this))
     this.onRender(renderData);
     this.ctx.restore();
 
@@ -455,14 +454,16 @@ export default class Timebar {
         time = this.maxYear - selectedDuration / 2;
       }
     }
+
     let newY = -this.getYbyTime(time) + this.centerHeight;
-    // this.$html.find($('p')).html(time)
+
+
     TweenLite.to(this.translate, animate, {
       y: newY,
       onUpdateParams: ['{ self }'],
       onUpdate: (tn) => {
         this.updateBufferYears();
-        this.render();
+        // this.render();
         if (cb) {
           cb()
         } else {
@@ -493,6 +494,8 @@ export default class Timebar {
       newUnitTime,
       newUnitWidth
     } = timeMath.calcUnitBySelectedOffset(this, startTime, endTime);
+    // console.log(newUnitTime)
+    // console.log(newUnitWidth)
     this._zoomToSelectedOffset(startTime, endTime, newUnitTime, newUnitWidth, animate, cb)
 
 
@@ -557,7 +560,7 @@ export default class Timebar {
         this.updateTotalWidth();
         this.updateBufferYears();
         this.setCenterByTime(centerTime, 0, true, cb);
-        this.render()
+        // this.render()
 
         if (cb) {
           cb()
@@ -568,11 +571,6 @@ export default class Timebar {
     })
 
   }
-
-  /**
-   * 缩放
-   * @param {number} delta
-   */
   _touchZoom(delta) {
 
 
@@ -590,9 +588,8 @@ export default class Timebar {
     /**
      * 获取现在中心时间
      */
-
-    let centerTime = this.getTimeByPixel(parseInt(this.getYbyTime(this.getTimeByPixel(0))) + this.touchCenterY);
-
+    let centerTime = this.getTimeByPixel(this.centerHeight);
+    // this.$html.find($('p')).html(centerTime)
     /**
      * 计算缩放后的单位长度
      */
@@ -657,12 +654,16 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    this.render()
+    // this.render()
     /**
      * 触发外部事件
      */
     this.onChange(this);
   }
+  /**
+   * 缩放
+   * @param {number} delta
+   */
   _zoom(delta) {
 
 
@@ -680,9 +681,7 @@ export default class Timebar {
     /**
      * 获取现在中心时间
      */
-
     let centerTime = this.getTimeByPixel(this.centerHeight);
-
     /**
      * 计算缩放后的单位长度
      */
@@ -747,7 +746,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    this.render()
+    // this.render()
     /**
      * 触发外部事件
      */
@@ -818,16 +817,15 @@ export default class Timebar {
 
 
       this.updateBufferYears();
-      this.render();
+      // this.render();
       this.onChange(this);
     }
 
+
   }
 
-  _mouseup(e) {
+  _mouseup() {
     this.mousedownPos = false;
-
-
   }
 
   /**
@@ -849,6 +847,8 @@ export default class Timebar {
     var events2 = touches[1];
 
 
+    // let 
+
 
     this.mousedownPos = {
       x: events.clientX,
@@ -858,15 +858,12 @@ export default class Timebar {
       ...this.translate
     };
     if (events2) {
-      // 双指初次落点
       this.mousedownPos = {
         x: events.clientX,
         y: events.clientY,
         x2: events2.clientX,
         y2: events2.clientY,
       };
-      this.touchCenterY = (this.mousedownPos.y2 - this.mousedownPos.y) / 2
-
     }
 
   }
@@ -879,8 +876,6 @@ export default class Timebar {
 
     var events = touches[0];
     var events2 = touches[1];
-
-
 
     if (events) {
       // 单指操作
@@ -899,10 +894,8 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        this.render();
+        // this.render();
         this.onChange(this);
-
-
       }
     }
 
@@ -912,56 +905,60 @@ export default class Timebar {
         this.mousedownPos.x2 = events2.pageX;
       }
       if (!this.mousedownPos.y2) {
-        this.mousedownPos.y2 = events2.pageY;
+        this.mousedownPos.xy = events2.pageY;
       }
-
-      this.mousePos.x = events.clientX;
-      this.mousePos.x2 = events2.clientX
-      this.mousePos.y = events.clientY;
-      this.mousePos.y2 = events2.clientY
-
-      // let delatY = Math.max(this.mousePos.y - this.mousedownPos.y, this.mousePos.y2 - this.mousedownPos.y2);
-      // let newY = this.downTranslate.y + delatY;
-      // this._fixOverFlowTranslate(newY)
-      // this.updateBufferYears();
-      // this.render();
-      // this.onChange(this);
-
-      // var zoom = (- parseInt(((events.pageY - this.mousedownPos.y) - (events2.pageY - this.mousedownPos.y2)) / 2) * 0.01).toFixed(2)
-      // this._touchZoom(zoom)
-      // // var zoom = Math.max((this.mousedownPos.y - events.pageY) / 100, (events2.pageY - this.mousedownPos.y2) / 100)
-      // // let translateY = `${(this.mousedownPos.y - events.pageY) / 100},${(events2.pageY - this.mousedownPos.y2) / 100}`
-      // this.$html.find($('p')).html(zoom)
-      // var newScale = this.store.originScale * zoom;
-      // if (newScale > 3) {
-      //   newScale = 3;
-      // }
-
-      // this.store.scale = newScale;
+      var zoom = this.getDistance({
+        x: events.pageX,
+        y: events.pageY
+      }, {
+        x: events2.pageX,
+        y: events2.pageY
+      }) /
+        this.getDistance({
+          x: this.mousedownPos.x,
+          y: this.mousedownPos.y
+        }, {
+          x: this.mousedownPos.x2,
+          y: this.mousedownPos.y2
+        });
+      var newScale = this.store.originScale * zoom;
+      if (newScale > 3) {
+        newScale = 3;
+      }
+      let zeroY = this.getYbyTime(this.getTimeByPixel(0))
+      this.touchCenterY = ((events.clientY + events2.clientY) / 2) + zeroY
+      if (this.store.scale > newScale) {
+        this._touchZoom(-this.touchZoomSpeed);
+      } else {
+        this._touchZoom(this.touchZoomSpeed);
+      }
+      this.store.scale = newScale;
     }
   }
   _touchend(e) {
-    // this.store.moveable = false;
+    this.store.moveable = false;
     // this.onClick(e)
-    // delete this.mousedownPos.x2;
-    // delete this.mousedownPos.y2;
+    delete this.mousedownPos.x2;
+    delete this.mousedownPos.y2;
   }
-
+  getDistance(start, stop) {
+    return Math.hypot(stop.x - start.x, stop.y - start.y);
+  }
   bind() {
 
-    $('#timebar').on('resize.timebar', this._resize.bind(this))
-    $('#timebar').on('mousemove.dls-map-timebar', this._mousemove.bind(this))
-    $('#timebar').on('mouseup.dls-map-timebar', this._mouseup.bind(this))
+    $(window).on('resize.timebar', this._resize.bind(this))
+    $(window).on('mousemove.dls-map-timebar', this._mousemove.bind(this))
+    $(window).on('mouseup.dls-map-timebar', this._mouseup.bind(this))
 
 
     let mouseEventDom = $(window);
     let toucheEventDom = $('#timebar')
 
 
-    toucheEventDom.on('mousewheel', this._mouseWheel.bind(this))
-    toucheEventDom.on('mousedown', this._mousedown.bind(this))
-    toucheEventDom.on('mouseenter', this._mouseenter.bind(this))
-    toucheEventDom.on('mouseleave', this._mouseleave.bind(this))
+    mouseEventDom.on('mousewheel', this._mouseWheel.bind(this))
+    mouseEventDom.on('mousedown', this._mousedown.bind(this))
+    mouseEventDom.on('mouseenter', this._mouseenter.bind(this))
+    mouseEventDom.on('mouseleave', this._mouseleave.bind(this))
 
     toucheEventDom.on('touchstart', this._touchstart.bind(this))
     toucheEventDom.on('touchmove', this._touchmove.bind(this))

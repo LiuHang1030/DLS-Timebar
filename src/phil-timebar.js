@@ -5,6 +5,7 @@ import Dot from './components/dot'
 import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
+import { cloneDeep } from './utils/utils'
 
 const SWITCH_LINE_HEIGHT = 15
 
@@ -32,32 +33,32 @@ export default class PhilTimebar {
       westRenderList: [],
       eastRenderList: [],
       tabIndex: 1,
-      timebarTranslateY: 50,
+      tabBarHeight: 50,
       quoteWidth: 120,
     }, props)
     this.initial()
-    // this.controller = new Controller({
-    //   $html: this.$html,
-    //   tab: true,
-    //   slider: true,
-    //   onTabClickHandle: (index) => {
-    //     this.tabIndex = index
-    //     this.ruler.render()
-    //     this.clearQuote()
-    //   },
-    //   onSliderClickHandle: (index) => {
-    //     // 改变缩放层级
-    //     switch (index) {
-    //       case 1:
+    this.controller = new Controller({
+      $html: this.$html,
+      tab: true,
+      slider: true,
+      onTabClickHandle: (index) => {
+        this.tabIndex = index
+        this.ruler.render()
+        this.clearQuote()
+      },
+      onSliderClickHandle: (index) => {
+        // 改变缩放层级
+        switch (index) {
+          case 1:
 
-    //         break;
-    //       case 2:
-    //         break;
-    //       case 3:
-    //         break;
-    //     }
-    //   }
-    // })
+            break;
+          case 2:
+            break;
+          case 3:
+            break;
+        }
+      }
+    })
 
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
@@ -90,10 +91,11 @@ export default class PhilTimebar {
         this.screenEndTime = screenEndTime
         this.ruler = ruler
         this.totalHeight = totalHeight
-        this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
+
+
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
-        this.calculatePosition()
+        this.calculatePosition(e)
       }
     })
 
@@ -117,35 +119,42 @@ export default class PhilTimebar {
     let clickQuote = false
     const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
     // 时间轴点击回调
-    let eastRenderList = this.eastRenderList.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
-    })
-    let westRenderList = this.westRenderList.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
-    })
-    let nowScreenRenderList = eastRenderList.concat(westRenderList)
 
 
+    let nowScreenRenderList = []
+
+
+    if (this.tabIndex == 0) {
+      let westRenderList = this['totalHeight' + this.totalHeight].westRenderList.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
+      })
+      nowScreenRenderList = westRenderList
+    } else if (this.tabIndex == 2) {
+      let eastRenderList = this['totalHeight' + this.totalHeight].eastRenderList.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
+      })
+      nowScreenRenderList = eastRenderList
+    }
 
     let hasClickNodeList = nowScreenRenderList.filter((item) => {
       const { originType, switchLine } = item
 
 
       const x = item.x
-      const y = item.y + this.timebarTranslateY - zeroY
+      const y = item.y + this.tabBarHeight - zeroY
 
 
 
       if (this.tabIndex == 0 || this.tabIndex == 2) {
         const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
-        const quoteY = item.y + this.timebarTranslateY - zeroY
+        const quoteY = item.y + this.tabBarHeight - zeroY
         const quoteHeight = 40
 
         const quoteMinX = quoteX
         const quoteMaxX = quoteX + this.quoteWidth
         // switchLine 为 true 需要扩大范围
-        const quoteMinY = quoteY - quoteHeight / 2
-        const quoteMaxY = switchLine ? quoteY + (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY + quoteHeight / 2
+        const quoteMinY = quoteY - (quoteHeight / 2) - this.tabBarHeight
+        const quoteMaxY = switchLine ? quoteY + this.tabBarHeight - (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY - this.tabBarHeight + quoteHeight / 2
 
         const xWithInQuote = quoteMinX <= pageX && pageX <= quoteMaxX
         const yWithInQuote = quoteMinY <= pageY && pageY <= quoteMaxY
@@ -212,7 +221,7 @@ export default class PhilTimebar {
     let $quote = $(`<div>${saying.title}</div>`)
     $quote.addClass('phil-quote')
     $quote.css('left', quoteX)
-    if (y + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT) {
+    if (y + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
       $quote.css('top', quoteMinY)
       $quote.css('borderBottom', 'none')
     } else {
@@ -426,63 +435,121 @@ export default class PhilTimebar {
   }
   calculatePosition(e) {
     // tab栏进行东西方哲学家筛选功能
-    if (this.totalHeight) {
+    const { totalHeight } = e
+    if (totalHeight) {
 
-      this.centerPx = this.ruler.centerPx
-      this.philData.forEach(phil => {
-        const { originType, year } = phil
-        phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-        phil.y = parseInt(this.ruler.getYbyTime(year))
-        phil.originY = parseInt(this.ruler.getYbyTime(year))
-      })
-
-      this.gapYear = this.ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - this.ruler.getTimeByPixel(0)
+      this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
       this.westRenderList = []
       this.eastRenderList = []
+      this.centerPx = this.ruler.centerPx
 
-      if (this.tabIndex == 0) {
+      if (this['totalHeight' + totalHeight]) {
+
+        if (this.tabIndex == 0) {
+          this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              if (nowPhilNode.saying) {
+                this.drawPhilQuote(nowPhilNode)
+              }
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+        } else if (this.tabIndex == 1) {
+          this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+          this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+        } else if (this.tabIndex == 2) {
+          this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              if (nowPhilNode.saying) {
+                this.drawPhilQuote(nowPhilNode)
+              }
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+        }
+      } else {
+
+        this['totalHeight' + totalHeight] = {}
+        this.philData.forEach(phil => {
+          const { originType, year } = phil
+          phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+          phil.y = parseInt(this.ruler.getYbyTime(year))
+          phil.originY = parseInt(this.ruler.getYbyTime(year))
+        })
+
         this.westRenderList = this.mapHighLevelNodeList('WEST')
-        this.westRenderList.forEach(nowPhilNode => {
-          if (nowPhilNode.canDraw) {
-            this.drawPhilQuote(nowPhilNode)
-            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-          } else {
-            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          }
-        })
-      } else if (this.tabIndex == 1) {
+        this.eastRenderList = this.mapHighLevelNodeList('EAST')
+        this['totalHeight' + totalHeight].westRenderList = _.cloneDeep(this.westRenderList)
+        this['totalHeight' + totalHeight].eastRenderList = _.cloneDeep(this.eastRenderList)
+        if (this.tabIndex == 0) {
 
 
-        this.westRenderList = this.mapHighLevelNodeList('WEST')
-        this.westRenderList.forEach(nowPhilNode => {
-          if (nowPhilNode.canDraw) {
-            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-          } else {
-            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          }
-        })
-        this.eastRenderList = this.mapHighLevelNodeList('EAST')
-        this.eastRenderList.forEach(nowPhilNode => {
-          if (nowPhilNode.canDraw) {
-            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-          } else {
-            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          }
-        })
-      } else if (this.tabIndex == 2) {
-        this.eastRenderList = this.mapHighLevelNodeList('EAST')
-        this.eastRenderList.forEach(nowPhilNode => {
-          if (nowPhilNode.canDraw) {
-            this.drawPhilQuote(nowPhilNode)
-            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-          } else {
-            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          }
-        })
+          this.westRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              if (nowPhilNode.saying) {
+                this.drawPhilQuote(nowPhilNode)
+              }
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+
+        } else if (this.tabIndex == 1) {
+
+
+
+
+          this.westRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+          this.eastRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode.canDraw) {
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+
+
+
+        } else if (this.tabIndex == 2) {
+
+          this.eastRenderList.forEach(nowPhilNode => {
+            if (nowPhilNode && nowPhilNode.canDraw) {
+              if (nowPhilNode.saying) {
+                this.drawPhilQuote(nowPhilNode)
+              }
+              this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+            } else {
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+            }
+          })
+
+
+        }
+        console.log(this['totalHeight' + totalHeight])
       }
-
-
-
       this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
       this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
 
@@ -520,6 +587,7 @@ export default class PhilTimebar {
       } else {
         this.westQuote.removeClass('show')
       }
+
 
     }
   }
@@ -1082,9 +1150,5 @@ export default class PhilTimebar {
     } else if (a.year > b.year) {
       return b
     }
-  }
-
-  filterCanDrawList(e, data) {
-
   }
 }
