@@ -5,6 +5,7 @@ import Dot from './components/dot'
 import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
+import getLayOut from './components/layout'
 
 const SWITCH_LINE_HEIGHT = 15
 
@@ -351,12 +352,6 @@ export default class PhilTimebar {
     this.westLevel4Data = this.getLevelData(3, 'WEST')
 
   }
-  drawBubble(title, desc) {
-    let $container = $('<div></div>')
-    $container.addClass('bubble')
-    $container.html('当前节点与上一个节点是否重合，只需要比较当前节点的最小 Y 值是否大于上个节点的最大值  ')
-    $('body').append($container)
-  }
   checkIsCoinCide(compareNode, nowNode) {
 
     if (compareNode.year <= nowNode.year) {
@@ -430,14 +425,15 @@ export default class PhilTimebar {
       this.philData.forEach(phil => {
         const { originType, year } = phil
         phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-        phil.y = parseInt(this.ruler.getYbyTime(year))
-        phil.originY = parseInt(this.ruler.getYbyTime(year))
+        phil.originY = phil.y = parseInt(this.ruler.getYbyTime(year))
       })
-
       this.gapYear = this.ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - this.ruler.getTimeByPixel(0)
       this.westRenderList = []
       this.eastRenderList = []
 
+      getLayOut({nodes: this.philData, minYear: this.minYear, maxYear: this.maxYear});
+      return;
+      // this.zoomLevel = 
       if (this.tabIndex == 0) {
         this.westRenderList = this.mapHighLevelNodeList('WEST')
         this.westRenderList.forEach(nowPhilNode => {
@@ -459,14 +455,14 @@ export default class PhilTimebar {
             this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
           }
         })
-        this.eastRenderList = this.mapHighLevelNodeList('EAST')
-        this.eastRenderList.forEach(nowPhilNode => {
-          if (nowPhilNode.canDraw) {
-            this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
-          } else {
-            this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
-          }
-        })
+        // this.eastRenderList = this.mapHighLevelNodeList('EAST')
+        // this.eastRenderList.forEach(nowPhilNode => {
+        //   if (nowPhilNode.canDraw) {
+        //     this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
+        //   } else {
+        //     this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+        //   }
+        // })
       } else if (this.tabIndex == 2) {
         this.eastRenderList = this.mapHighLevelNodeList('EAST')
         this.eastRenderList.forEach(nowPhilNode => {
@@ -481,43 +477,43 @@ export default class PhilTimebar {
 
 
 
-      this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
-      this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
+      // this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
+      // this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
 
 
-      if (this.eastWithInData && !this.eastWithInData.length) {
-        // 如果屏幕内不存在任何东方节点
-        let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
-        if (quoteList) {
-          // 如果存在可显示的 quote
-          let $content = $('<div></div>')
-          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-          $content.append(title)
-          let desc = quoteList.bubbleDesc
-          $content.append(`<div class="quote-content">${desc}</div>`)
-          this.eastQuote.html($content)
-          this.eastQuote.addClass('show')
-        }
+      // if (this.eastWithInData && !this.eastWithInData.length) {
+      //   // 如果屏幕内不存在任何东方节点
+      //   let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
+      //   if (quoteList) {
+      //     // 如果存在可显示的 quote
+      //     let $content = $('<div></div>')
+      //     let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+      //     $content.append(title)
+      //     let desc = quoteList.bubbleDesc
+      //     $content.append(`<div class="quote-content">${desc}</div>`)
+      //     this.eastQuote.html($content)
+      //     this.eastQuote.addClass('show')
+      //   }
 
-      } else {
-        this.eastQuote.removeClass('show')
-      }
-      if (this.westWithInData && !this.westWithInData.length) {
-        // 如果屏幕内不存在任何西方节点
-        let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
-        if (quoteList) {
-          // 如果存在可显示的 quote
-          let $content = $('<div></div>')
-          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-          $content.append(title)
-          let desc = quoteList.bubbleDesc
-          $content.append(`<div class="quote-content">${desc}</div>`)
-          this.westQuote.html($content)
-          this.westQuote.addClass('show')
-        }
-      } else {
-        this.westQuote.removeClass('show')
-      }
+      // } else {
+      //   this.eastQuote.removeClass('show')
+      // }
+      // if (this.westWithInData && !this.westWithInData.length) {
+      //   // 如果屏幕内不存在任何西方节点
+      //   let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
+      //   if (quoteList) {
+      //     // 如果存在可显示的 quote
+      //     let $content = $('<div></div>')
+      //     let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+      //     $content.append(title)
+      //     let desc = quoteList.bubbleDesc
+      //     $content.append(`<div class="quote-content">${desc}</div>`)
+      //     this.westQuote.html($content)
+      //     this.westQuote.addClass('show')
+      //   }
+      // } else {
+      //   this.westQuote.removeClass('show')
+      // }
 
     }
   }
