@@ -94,8 +94,8 @@ export default class PhilTimebar {
 
 
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
-        this.drawPeriod(e)
-        this.calculatePosition(e)
+        // this.drawPeriod(e)
+        // this.calculatePosition(e)
       }
     })
 

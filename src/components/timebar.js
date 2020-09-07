@@ -161,10 +161,10 @@ export default class Timebar {
       unitTime: this.unitTime,
       ruler: this
     }
-    window.requestAnimationFrame(this.render.bind(this))
+
     this.onRender(renderData);
     this.ctx.restore();
-
+    window.requestAnimationFrame(this.render.bind(this))
 
   }
 
@@ -588,7 +588,7 @@ export default class Timebar {
     /**
      * 获取现在中心时间
      */
-    let centerTime = this.getTimeByPixel(this.centerHeight);
+    let centerTime = this.getTimeByPixel(this.touchCenterY);
     // this.$html.find($('p')).html(centerTime)
     /**
      * 计算缩放后的单位长度
