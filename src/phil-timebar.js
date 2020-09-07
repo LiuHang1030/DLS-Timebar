@@ -5,7 +5,10 @@ import Dot from './components/dot'
 import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
-import { cloneDeep } from './utils/utils'
+import {
+  TweenLite,
+  Power0
+} from 'gsap';
 
 const SWITCH_LINE_HEIGHT = 15
 
@@ -35,30 +38,31 @@ export default class PhilTimebar {
       tabIndex: 1,
       tabBarHeight: 50,
       quoteWidth: 120,
+      quoteTop: document.body.clientHeight * 0.1
     }, props)
     this.initial()
-    this.controller = new Controller({
-      $html: this.$html,
-      tab: true,
-      slider: true,
-      onTabClickHandle: (index) => {
-        this.tabIndex = index
-        this.ruler.render()
-        this.clearQuote()
-      },
-      onSliderClickHandle: (index) => {
-        // 改变缩放层级
-        switch (index) {
-          case 1:
+    // this.controller = new Controller({
+    //   $html: this.$html,
+    //   tab: true,
+    //   slider: true,
+    //   onTabClickHandle: (index) => {
+    //     this.tabIndex = index
+    //     this.ruler.render()
+    //     this.clearQuote()
+    //   },
+    //   onSliderClickHandle: (index) => {
+    //     // 改变缩放层级
+    //     switch (index) {
+    //       case 1:
 
-            break;
-          case 2:
-            break;
-          case 3:
-            break;
-        }
-      }
-    })
+    //         break;
+    //       case 2:
+    //         break;
+    //       case 3:
+    //         break;
+    //     }
+    //   }
+    // })
 
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
@@ -94,8 +98,9 @@ export default class PhilTimebar {
 
 
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
-        // this.drawPeriod(e)
-        // this.calculatePosition(e)
+        this.drawPeriod(e)
+        this.calculatePosition(e)
+
       }
     })
 
@@ -419,6 +424,8 @@ export default class PhilTimebar {
           originY
         })
         window[itemId].draw()
+
+
       } else {
         window[itemId].x = x
         window[itemId].y = y
@@ -429,13 +436,16 @@ export default class PhilTimebar {
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
         window[itemId].draw()
+        TweenLite.to(window[itemId], 1, {
+          y
+        })
       }
     }
 
   }
   calculatePosition(e) {
     // tab栏进行东西方哲学家筛选功能
-    const { totalHeight } = e
+    const { ruler, totalHeight } = e
     if (totalHeight) {
 
       this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
@@ -532,7 +542,6 @@ export default class PhilTimebar {
           })
 
 
-
         } else if (this.tabIndex == 2) {
 
           this.eastRenderList.forEach(nowPhilNode => {
@@ -548,30 +557,44 @@ export default class PhilTimebar {
 
 
         }
-        console.log(this['totalHeight' + totalHeight])
       }
       this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
       this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
 
-
-      if (this.eastWithInData && !this.eastWithInData.length) {
+      if ((this.eastWithInData && !this.eastWithInData.length) || this.eastWithInData.every(item => item.canDraw)) {
         // 如果屏幕内不存在任何东方节点
         let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
+
         if (quoteList) {
+
+
           // 如果存在可显示的 quote
           let $content = $('<div></div>')
+
           let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
           $content.append(title)
           let desc = quoteList.bubbleDesc
           $content.append(`<div class="quote-content">${desc}</div>`)
           this.eastQuote.html($content)
-          this.eastQuote.addClass('show')
+          let quoteHeight = this.eastQuote.outerHeight()
+
+
+          let canShow = this.eastWithInData.every(item => {
+            let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
+            let itemMaxY = item.y + this.CIRCLE_DIAMETER
+            return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
+          })
+          if (canShow) {
+            this.eastQuote.addClass('show')
+          } else {
+            this.eastQuote.removeClass('show')
+          }
         }
 
       } else {
         this.eastQuote.removeClass('show')
       }
-      if (this.westWithInData && !this.westWithInData.length) {
+      if ((this.westWithInData && !this.westWithInData.length) || this.westWithInData.every(item => item.canDraw)) {
         // 如果屏幕内不存在任何西方节点
         let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
         if (quoteList) {
@@ -582,7 +605,18 @@ export default class PhilTimebar {
           let desc = quoteList.bubbleDesc
           $content.append(`<div class="quote-content">${desc}</div>`)
           this.westQuote.html($content)
-          this.westQuote.addClass('show')
+          let quoteHeight = this.westQuote.outerHeight()
+          let canShow = this.westWithInData.every(item => {
+            let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
+            let itemMaxY = item.y + this.CIRCLE_DIAMETER
+            return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
+          })
+          if (canShow) {
+            this.westQuote.addClass('show')
+          } else {
+            this.westQuote.removeClass('show')
+          }
+
         }
       } else {
         this.westQuote.removeClass('show')

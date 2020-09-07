@@ -33,7 +33,7 @@ export default class Timebar {
       minUnitTime: 1, // 最小刻度
       maxUnitTime: 40, // 最大刻度
       zoomSpeed: 0.5,
-      touchZoomSpeed: 0.25,
+      touchZoomSpeed: 0.5,
       zoom: 1,
       unitWidth: 16,
       mousePos: {
@@ -135,15 +135,12 @@ export default class Timebar {
   }
 
   _resize() {
-
-    // console.log(this.$html.width())
     this.canvas.width = this.$html.width() * this.ratio;
     this.canvas.height = this.$html.height() * this.ratio;
     this.centerPx = this.$html.width() / 2;
     this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
-    // this.render();
     this.onChange({ resize: true });
   }
 
@@ -153,7 +150,6 @@ export default class Timebar {
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
     this.drawUnit();
-
     let renderData = {
       totalHeight: this.totalWidth,
       screenStartTime: this.getTimeByPixel(0),
@@ -162,17 +158,18 @@ export default class Timebar {
       ruler: this
     }
 
+
     this.onRender(renderData);
     this.ctx.restore();
-    window.requestAnimationFrame(this.render.bind(this))
+    // 如果长时间没有操作停止 requestAnimationFrame
+    // window.requestAnimationFrame(this.render.bind(this))
+
 
   }
-
   /**
    * 更新当前状态总宽度
    */
   updateTotalWidth() {
-
     this.totalWidth = this.unitWidth * ((this.maxYear - this.minYear) / this.unitTime);
   }
 
@@ -233,52 +230,52 @@ export default class Timebar {
 
       loneLineCounter++;
     }
-    // /**
-    //  * 绘制1年之前的刻度
-    //  */
-    // if (this.bufferYears.min < 0) {
-    //   for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
+    /**
+     * 绘制1年之前的刻度
+     */
+    if (this.bufferYears.min < 0) {
+      for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
 
-    //     let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
-    //     let isLongUnit = (loneLineCounter + 1) % 10 == 0;
+        let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
+        let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-    //     this.drawLine(y, isLongUnit ? 20 : 8);
+        this.drawLine(y, isLongUnit ? 20 : 8);
 
-    //     // console.log(i)
-    //     if (isLongUnit) {
-    //       this.drawText(i - this.unitTime, y)
-    //     }
+        // console.log(i)
+        if (isLongUnit) {
+          this.drawText(i - this.unitTime, y)
+        }
 
-    //     loneLineCounter++;
-    //   }
-    // }
+        loneLineCounter++;
+      }
+    }
 
-    // loneLineCounter = 0;
+    loneLineCounter = 0;
 
     /**
      * 绘制1年之后的年份
      */
-    // if (this.bufferYears.max > 0) {
-    //   for (let i = 1; i < this.bufferYears.max; i += this.unitTime) {
+    if (this.bufferYears.max > 0) {
+      for (let i = 1; i < this.bufferYears.max; i += this.unitTime) {
 
-    //     let y = loneLineCounter * this.unitWidth + this.zeroX;;
-    //     let isLongUnit = loneLineCounter % 10 == 0;
+        let y = loneLineCounter * this.unitWidth + this.zeroX;;
+        let isLongUnit = loneLineCounter % 10 == 0;
 
 
-    //     let text = i - 1;
-    //     if (i == 1) {
-    //       text = i
-    //     }
+        let text = i - 1;
+        if (i == 1) {
+          text = i
+        }
 
-    //     this.drawLine(y, isLongUnit ? 20 : 8);
+        this.drawLine(y, isLongUnit ? 20 : 8);
 
-    //     if (isLongUnit) {
-    //       this.drawText(text, y)
-    //     }
+        if (isLongUnit) {
+          this.drawText(text, y)
+        }
 
-    //     loneLineCounter++;
-    //   }
-    // }
+        loneLineCounter++;
+      }
+    }
   }
 
   drawLine(y, width = 10) {
@@ -376,7 +373,6 @@ export default class Timebar {
   getTimeByPixel(_y) {
     let y = _y - this.translate.y;
     let percentY = y / this.totalWidth;
-    // console.log(percentX * this.totalTime + this.minYear)
     let time = percentY * this.totalTime + this.minYear;
     if (Math.floor(time) == 0) {
       time = 1;
@@ -409,9 +405,9 @@ export default class Timebar {
    * 传入时间，获取屏幕位置
    * @param {number} time
    */
-  getScreenXbyTime(time) {
-    let x = this.getYbyTime(time);
-    return Math.round(x + this.translate.y);
+  getScreenYbyTime(time) {
+    let y = this.getYbyTime(time);
+    return Math.round(y + this.translate.y);
   }
 
   /**
@@ -463,7 +459,7 @@ export default class Timebar {
       onUpdateParams: ['{ self }'],
       onUpdate: (tn) => {
         this.updateBufferYears();
-        // this.render();
+        this.render();
         if (cb) {
           cb()
         } else {
@@ -560,7 +556,7 @@ export default class Timebar {
         this.updateTotalWidth();
         this.updateBufferYears();
         this.setCenterByTime(centerTime, 0, true, cb);
-        // this.render()
+        this.render()
 
         if (cb) {
           cb()
@@ -583,13 +579,11 @@ export default class Timebar {
 
 
 
-
-
     /**
      * 获取现在中心时间
      */
-    let centerTime = this.getTimeByPixel(this.touchCenterY);
-    // this.$html.find($('p')).html(centerTime)
+    let centerTime = parseInt(this.getTimeByPixel(this.touchCenter));
+
     /**
      * 计算缩放后的单位长度
      */
@@ -654,7 +648,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    // this.render()
+    this.render()
     /**
      * 触发外部事件
      */
@@ -673,10 +667,6 @@ export default class Timebar {
     let newUnitWidth = this.unitWidth;
     let newUnitTime = this.unitTime;
     newUnitWidth += delta;
-
-
-
-
 
     /**
      * 获取现在中心时间
@@ -736,7 +726,7 @@ export default class Timebar {
     this.setCenterByTime(centerTime);
     this._fixOverFlowTranslate(this.translate.y);
 
-    this.updateBufferYears();
+    // this.updateBufferYears();
 
     /**
      * 如果总的可选区域小于offsetAreaDuration时间跨度，则固定为时间跨度的宽度
@@ -746,7 +736,8 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    // this.render()
+    // this.drawed = false
+    this.render()
     /**
      * 触发外部事件
      */
@@ -797,8 +788,10 @@ export default class Timebar {
     /**
      * 更新鼠标位置
      */
+
     this.mousePos.x = e.clientX;
     this.mousePos.y = e.clientY;
+
 
 
     if (this.mousedownPos) {
@@ -813,15 +806,12 @@ export default class Timebar {
       /**
        * 超出边界的处理
        */
+      this.updateTotalWidth();
       this._fixOverFlowTranslate(newY)
-
-
       this.updateBufferYears();
-      // this.render();
       this.onChange(this);
     }
-
-
+    this.mouseCenterY = e.clientY
   }
 
   _mouseup() {
@@ -832,10 +822,11 @@ export default class Timebar {
    * mouseenter
    */
   _mouseenter(e) {
-    this.$html.toggleClass('hover', true)
+
+    // this.$html.toggleClass('hover', true)
   }
   _mouseleave(e) {
-    this.$html.toggleClass('hover', false)
+    // this.$html.toggleClass('hover', false)
   }
 
   _touchstart(e) {
@@ -864,6 +855,8 @@ export default class Timebar {
         x2: events2.clientX,
         y2: events2.clientY,
       };
+      this.touchCenter = parseInt((events.clientY + events2.clientY) / 2)
+      this.$html.find($('p')).html(this.getTimeByPixel(this.touchCenter))
     }
 
   }
@@ -872,6 +865,7 @@ export default class Timebar {
     if (!this.store.moveable) {
       return;
     }
+
     var touches = e.originalEvent.targetTouches;
 
     var events = touches[0];
@@ -894,7 +888,7 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        // this.render();
+        this.render();
         this.onChange(this);
       }
     }
@@ -925,8 +919,7 @@ export default class Timebar {
       if (newScale > 3) {
         newScale = 3;
       }
-      let zeroY = this.getYbyTime(this.getTimeByPixel(0))
-      this.touchCenterY = ((events.clientY + events2.clientY) / 2) + zeroY
+
       if (this.store.scale > newScale) {
         this._touchZoom(-this.touchZoomSpeed);
       } else {
@@ -946,19 +939,19 @@ export default class Timebar {
   }
   bind() {
 
-    $(window).on('resize.timebar', this._resize.bind(this))
-    $(window).on('mousemove.dls-map-timebar', this._mousemove.bind(this))
-    $(window).on('mouseup.dls-map-timebar', this._mouseup.bind(this))
+    $('#timebar').on('resize.timebar', this._resize.bind(this))
+    $('#timebar').on('mousemove.dls-map-timebar', this._mousemove.bind(this))
+    $('#timebar').on('mouseup.dls-map-timebar', this._mouseup.bind(this))
 
 
     let mouseEventDom = $(window);
     let toucheEventDom = $('#timebar')
 
 
-    mouseEventDom.on('mousewheel', this._mouseWheel.bind(this))
-    mouseEventDom.on('mousedown', this._mousedown.bind(this))
-    mouseEventDom.on('mouseenter', this._mouseenter.bind(this))
-    mouseEventDom.on('mouseleave', this._mouseleave.bind(this))
+    toucheEventDom.on('mousewheel', this._mouseWheel.bind(this))
+    toucheEventDom.on('mousedown', this._mousedown.bind(this))
+    toucheEventDom.on('mouseenter', this._mouseenter.bind(this))
+    toucheEventDom.on('mouseleave', this._mouseleave.bind(this))
 
     toucheEventDom.on('touchstart', this._touchstart.bind(this))
     toucheEventDom.on('touchmove', this._touchmove.bind(this))

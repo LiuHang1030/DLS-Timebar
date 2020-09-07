@@ -1,3 +1,6 @@
+import { TweenLite } from "gsap";
+
+
 export default class Avatar {
   constructor(props) {
     Object.assign(this, {
@@ -30,6 +33,7 @@ export default class Avatar {
     this.drawText(this.philName, this.x, this.y + this.size + 20)
     this.drawText(this.born, this.x, this.y + this.size + 35, true)
     this.drawLine(lineMoveToX, this.y, this.originY)
+
   }
   drawCircle(x, y) {
     this.ctx.beginPath()
@@ -121,7 +125,6 @@ export default class Avatar {
       } else {
         this.ctx.moveTo(this.centerPx, y)
         this.ctx.lineTo(lineTox2, y)
-
       }
     }
 
