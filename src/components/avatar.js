@@ -89,10 +89,10 @@ export default class Avatar {
     } else {
       if (this.angle > 0) {
         TweenLite.to(this.lineData, 1, {
-          x1: newX1,
-          x2: newX2,
-          y: newY,
-          opacity: 1,
+          x1: this.centerPx,
+          x2: this.centerPx,
+          y: this.originY,
+          opacity: 0,
           onUpdateParams: ['{ self }'],
           onComplete: (tn) => {
 

@@ -35,7 +35,7 @@ export default class PhilTimebar {
       level3RenderList: [],
       westRenderList: [],
       eastRenderList: [],
-      tabIndex: 1,
+      tabIndex: 0,
       tabBarHeight: 50,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1
@@ -196,7 +196,7 @@ export default class PhilTimebar {
     })
     if (hasClickNodeList && hasClickNodeList.length) {
       if (clickQuote) {
-        this.showQuote(hasClickNodeList[0])
+        this.showQuote(hasClickNodeList[0], pageY)
       } else {
         // 弹出跳转 APP 登录框
       }
@@ -213,7 +213,7 @@ export default class PhilTimebar {
     this.$html.append(this.westQuote)
     // this.$html.append($(document.createElement('p')))
   }
-  showQuote(nowPhilNode) {
+  showQuote(nowPhilNode, pageY) {
     const { y, originType, saying, switchLine } = nowPhilNode
     const QUOTE_MAX_HEIGHT = 150
     const radius = this.CIRCLE_DIAMETER / 2
@@ -229,7 +229,7 @@ export default class PhilTimebar {
     let $quote = $(`<div>${saying.title}</div>`)
     $quote.addClass('phil-quote')
     $quote.css('left', quoteX)
-    if (y + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
+    if (pageY + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
       $quote.css('top', quoteMinY)
       $quote.css('borderBottom', 'none')
     } else {
