@@ -67,7 +67,7 @@ export default class Avatar {
         // 先画折线
         TweenLite.to(this.lineData, 0.33, {
           x1: this.centerPx,
-          x2: this.centerPx,
+          x2: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
           y: this.originY,
           opacity: 0,
           onUpdateParams: ['{ self }'],
@@ -90,7 +90,7 @@ export default class Avatar {
       if (this.angle > 0) {
         TweenLite.to(this.lineData, 1, {
           x1: this.centerPx,
-          x2: this.centerPx,
+          x2: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
           y: this.originY,
           opacity: 0,
           onUpdateParams: ['{ self }'],

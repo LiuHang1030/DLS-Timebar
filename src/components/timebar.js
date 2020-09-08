@@ -24,7 +24,7 @@ export default class Timebar {
       container: document.body,
       minYear: -800,
       maxYear: new Date().getFullYear(),
-      minZoom: 0.5,
+      minZoom: 1,
       maxZoom: 10,
       minUnitWidth: 16,
       maxUnitWidth: 32,
@@ -634,7 +634,8 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio;
+      newUnitTime = this.unitTime * zoomRatio > this.maxUnitTime ? this.maxUnitTime : this.unitTime * zoomRatio;
+      // console.log('newUnitTime' + newUnitTime)
     }
 
 
@@ -655,7 +656,8 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-
+    // console.log(this.unitTime)
+    // console.log(this.unitWidth)
     /**
      * 更新总长度
      */
@@ -722,6 +724,7 @@ export default class Timebar {
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
       newUnitTime = this.unitTime * zoomRatio;
+      console.log('newUnitTime' + newUnitTime)
     }
 
 
@@ -742,7 +745,8 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-
+    console.log(this.unitTime)
+    console.log(this.unitWidth)
 
     /**
      * 更新总长度

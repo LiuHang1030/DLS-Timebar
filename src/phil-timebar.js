@@ -35,7 +35,7 @@ export default class PhilTimebar {
       level3RenderList: [],
       westRenderList: [],
       eastRenderList: [],
-      tabIndex: 0,
+      tabIndex: 1,
       tabBarHeight: 50,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1
@@ -78,14 +78,6 @@ export default class PhilTimebar {
       $html: this.$html,
       canvas: this.canvas,
       ctx: this.ctx,
-      offscreenCanvas: this.offscreenCanvas,
-      offscreenCtx: this.offscreenCtx,
-      minYear: this.minYear,
-      maxYear: this.maxYear,
-      unitTime: 40,
-      minUnitWidth: this.minUnitWidth,
-      maxUnitWidth: this.maxUnitWidth,
-      unitWidth: this.unitWidth,
       onClick: (e) => {
         this.clearQuote()
         this.onClickHandle(e)
