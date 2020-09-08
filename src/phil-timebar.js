@@ -90,11 +90,12 @@ export default class PhilTimebar {
 
       },
       onRender: (e) => {
-        const { ruler, screenStartTime, screenEndTime, totalHeight } = e
+        const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
         this.screenStartTime = screenStartTime
         this.screenEndTime = screenEndTime
         this.ruler = ruler
         this.totalHeight = totalHeight
+        this.bufferYears = bufferYears
 
 
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
@@ -208,7 +209,7 @@ export default class PhilTimebar {
     this.westQuote.addClass('quote').addClass('west-quote')
     this.$html.append(this.eastQuote)
     this.$html.append(this.westQuote)
-    this.$html.append($(document.createElement('p')))
+    // this.$html.append($(document.createElement('p')))
   }
   showQuote(nowPhilNode) {
     const { y, originType, saying, switchLine } = nowPhilNode
@@ -406,7 +407,7 @@ export default class PhilTimebar {
     }
 
   }
-  drawAvatar(avatarData, angle = 0) {
+  drawAvatar(avatarData,) {
     if (avatarData) {
       const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle } = avatarData
       if (!window[itemId]) {
@@ -454,19 +455,20 @@ export default class PhilTimebar {
 
         if (this.tabIndex == 0) {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
-              nowPhilNode.hasShow = false
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
         } else if (this.tabIndex == 1) {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               nowPhilNode.hasShow = false
@@ -474,7 +476,9 @@ export default class PhilTimebar {
             }
           })
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+
+            if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               nowPhilNode.hasShow = false
@@ -483,7 +487,8 @@ export default class PhilTimebar {
           })
         } else if (this.tabIndex == 2) {
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -509,7 +514,8 @@ export default class PhilTimebar {
         this['totalHeight' + totalHeight].eastRenderList = _.cloneDeep(this.eastRenderList)
         if (this.tabIndex == 0) {
           this.westRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -521,28 +527,26 @@ export default class PhilTimebar {
 
         } else if (this.tabIndex == 1) {
           this.westRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
           this.eastRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
-          // Promise.all(avatarQueue).then(() => {
-          //   console.log('cancel')
-          //   ruler.animateCancel()
-          // })
-
         } else if (this.tabIndex == 2) {
 
           this.eastRenderList.forEach(nowPhilNode => {
-            if (nowPhilNode && nowPhilNode.canDraw) {
+            let isWithInScreen = this.checkIsWithIn(nowPhilNode)
+            if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -622,6 +626,10 @@ export default class PhilTimebar {
 
     }
   }
+  checkIsWithIn(nowPhilNode) {
+    const { year } = nowPhilNode
+    return this.bufferYears.min <= year && year <= this.bufferYears.max
+  }
   drawPhilQuote(nowPhilNode) {
     const { y, saying, originType } = nowPhilNode
 
@@ -675,6 +683,7 @@ export default class PhilTimebar {
             } else {
               // 上一个节点是直线显示
               // 需要折线处理的节点
+
               const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
               nowPhilNode.angle = angle
               nowPhilNode.y = angle * 120 + nowPhilNode.y

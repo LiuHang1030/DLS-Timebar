@@ -19,7 +19,7 @@ export default class Avatar {
       philName: '',
       born: '',
       size: 25,
-      hasShow: true
+      hasShow: false
     }, props)
 
     console.log(this.lineData)
@@ -169,9 +169,6 @@ export default class Avatar {
             y: newY,
             opacity: 1,
             onUpdateParams: ['{ self }'],
-            onUpdate: () => {
-              // this.drawLine()
-            },
             onComplete: (tn) => {
               console.log(this.lineData)
             }
@@ -181,6 +178,9 @@ export default class Avatar {
     } else {
       this.lineData.y = y
       this.lineData.originY = originY
+
+
+
     }
 
 
@@ -213,6 +213,7 @@ export default class Avatar {
     this.ctx.strokeStyle = gradient
     this.ctx.stroke()
     this.ctx.closePath()
+
 
     // let timer = setInterval(() => {
     //   if (this.lineData.x2 >= newX2) {

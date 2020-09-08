@@ -156,9 +156,9 @@ export default class Timebar {
       screenStartTime: this.getTimeByPixel(0),
       screenEndTime: this.getTimeByPixel(this.$html.height()),
       unitTime: this.unitTime,
-      ruler: this
+      ruler: this,
+      bufferYears: this.bufferYears
     }
-
 
     this.onRender(renderData);
     this.ctx.restore();
@@ -168,19 +168,7 @@ export default class Timebar {
 
 
   }
-  animateStart() {
-    if (this.canAnimate) {
-      this.canAnimate = false
-      this.render()
-      setTimeout(() => {
-        this.canAnimate = true
-        this.animateCancel()
-      }, 3000);
-    }
-  }
-  animateCancel() {
-    window.cancelAnimationFrame(this.animate)
-  }
+
   /**
    * 更新当前状态总宽度
    */
@@ -645,16 +633,15 @@ export default class Timebar {
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
 
-
     /**
      * 更新总长度
      */
     this.updateTotalWidth();
-    this.setCenterByTime(centerTime);
-    this._fixOverFlowTranslate(this.translate.y);
-
+    // this.setCenterByTime(centerTime);
+    this._fixOverFlowTranslate(-this.getYbyTime(this.touchTopYear) + this.offsetTopY);
     this.updateBufferYears();
 
+    // this.$html.find($('p')).html(this.getYbyTime(this.touchTopYear))
     /**
      * 如果总的可选区域小于offsetAreaDuration时间跨度，则固定为时间跨度的宽度
      */
@@ -663,9 +650,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    // this.canAnimate = true
-    // this.animateStart()
-    // this.render()
+
     /**
      * 触发外部事件
      */
@@ -873,8 +858,12 @@ export default class Timebar {
         x2: events2.clientX,
         y2: events2.clientY,
       };
-      this.touchCenter = parseInt((events.clientY + events2.clientY) / 2)
-      this.$html.find($('p')).html(this.getTimeByPixel(this.touchCenter))
+
+      // this.touchCenter = parseInt((events.clientY + events2.clientY) / 2)
+      this.offsetTopY = Math.min(events.clientY, events2.clientY) // 获取当前缩放时候手指Y
+      this.touchTopYear = this.getTimeByPixel(this.offsetTopY) // 根据 Y 得知选中的是哪个年份
+      // this.touchScreenPercent = (touchTopY / this.$html.height())
+      // this.$html.find($('p')).html(this.getYbyTime(this.touchTopYear))
     }
 
   }
@@ -917,7 +906,7 @@ export default class Timebar {
         this.mousedownPos.x2 = events2.pageX;
       }
       if (!this.mousedownPos.y2) {
-        this.mousedownPos.xy = events2.pageY;
+        this.mousedownPos.y2 = events2.pageY;
       }
       var zoom = this.getDistance({
         x: events.pageX,
@@ -937,7 +926,6 @@ export default class Timebar {
       if (newScale > 3) {
         newScale = 3;
       }
-
       if (this.store.scale > newScale) {
         this._touchZoom(-this.touchZoomSpeed);
       } else {
