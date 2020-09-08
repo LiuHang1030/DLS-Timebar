@@ -18,14 +18,37 @@ export default class Avatar {
       philId: '',
       philName: '',
       born: '',
-      size: 25
+      size: 25,
+      hasShow: true
     }, props)
 
+    console.log(this.lineData)
 
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
+    if (this.hasShow) {
+      // 非首次出现
+      this.lineData = {
+        x: this.centerPx,
+        x1: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
+        x2: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
+        originY: this.originY,
+        y: this.y,
+        opacity: 1
+      }
+    } else {
+      // 首次出现
 
+      this.lineData = {
+        x: this.centerPx,
+        x1: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
+        x2: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
+        originY: this.originY,
+        y: this.y,
+        opacity: 0
+      }
+    }
   }
   draw() {
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
@@ -33,13 +56,12 @@ export default class Avatar {
     this.drawText(this.philName, this.x, this.y + this.size + 20)
     this.drawText(this.born, this.x, this.y + this.size + 35, true)
     this.drawLine(lineMoveToX, this.y, this.originY)
-
   }
   drawCircle(x, y) {
     this.ctx.beginPath()
     this.ctx.lineWidth = 3;
-    this.ctx.fillStyle = '#fff'
-    this.ctx.strokeStyle = "#a0365b"
+    this.ctx.fillStyle = `rgba(255, 255, 255, ${this.lineData.opacity})`
+    this.ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
     this.ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
     this.ctx.fill();
     this.ctx.stroke();
@@ -94,37 +116,95 @@ export default class Avatar {
     this.ctx.fill()
     this.ctx.closePath()
   }
-  drawLine(x, y, originY) {
-    const lineToX = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
-    const lineTox2 = this.originType === 'EAST' ? this.x - 35 : this.x + 35
+  drawLine(x, y, originY, animate = true) {
+
+    let newX1 = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
+    let newX2 = this.originType === 'EAST' ? this.x - 35 : this.x + 35;
+    let newY = this.y
     this.ctx.beginPath()
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
     gradient.addColorStop(1, "#AE295B");
 
+    if (!this.hasShow) {
+      if (this.originType == 'EAST') {
+        if (this.angle > 0) {
+          // 先画折线
+          TweenLite.to(this.lineData, 0.33, {
+            x1: newX1,
+            x2: newX2,
+            y: newY,
+            opacity: 1,
+            onUpdateParams: ['{ self }'],
+            onComplete: (tn) => {
+
+            }
+          })
+        } else {
+          TweenLite.to(this.lineData, 1, {
+            x2: newX2,
+            y: newY,
+            opacity: 1,
+            onUpdateParams: ['{ self }'],
+            onComplete: (tn) => {
+
+            }
+          })
+        }
+      } else {
+        if (this.angle > 0) {
+          TweenLite.to(this.lineData, 1, {
+            x1: newX1,
+            x2: newX2,
+            y: newY,
+            opacity: 1,
+            onUpdateParams: ['{ self }'],
+            onComplete: (tn) => {
+
+            }
+          })
+        } else {
+          TweenLite.to(this.lineData, 1, {
+            x2: newX2,
+            y: newY,
+            opacity: 1,
+            onUpdateParams: ['{ self }'],
+            onUpdate: () => {
+              // this.drawLine()
+            },
+            onComplete: (tn) => {
+              console.log(this.lineData)
+            }
+          })
+        }
+      }
+    } else {
+      this.lineData.y = y
+      this.lineData.originY = originY
+    }
+
+
     this.ctx.lineWidth = 1;
     if (this.originType === 'EAST') {
       if (this.angle > 0) {
 
-        this.ctx.moveTo(this.centerPx, originY)
-        this.ctx.lineTo(lineToX, y)
-        this.ctx.lineTo(lineToX + 30, y)
+        this.ctx.moveTo(this.lineData.x, this.lineData.originY) // 起始点
+        this.ctx.lineTo(this.lineData.x1, this.lineData.y) // 斜线连接
+        this.ctx.lineTo(this.lineData.x2, this.lineData.y)
 
 
       } else {
-        this.ctx.moveTo(this.centerPx, this.y)
-        this.ctx.lineTo(lineTox2, y)
+        this.ctx.moveTo(this.lineData.x, this.lineData.y)
+        this.ctx.lineTo(this.lineData.x2, this.lineData.y)
       }
     } else {
-      if (this.angle >= 0) {
-        this.ctx.moveTo(this.centerPx, originY)
-        this.ctx.lineTo(lineToX, y)
-        this.ctx.lineTo(lineToX - 30, y)
-
-
+      if (this.angle > 0) {
+        this.ctx.moveTo(this.lineData.x, this.lineData.originY) // 起始点
+        this.ctx.lineTo(this.lineData.x1, this.lineData.y) // 斜线连接
+        this.ctx.lineTo(this.lineData.x2, this.lineData.y)
       } else {
-        this.ctx.moveTo(this.centerPx, y)
-        this.ctx.lineTo(lineTox2, y)
+        this.ctx.moveTo(this.lineData.x, this.lineData.y)
+        this.ctx.lineTo(this.lineData.x2, this.lineData.y)
       }
     }
 
@@ -134,6 +214,14 @@ export default class Avatar {
     this.ctx.stroke()
     this.ctx.closePath()
 
+    // let timer = setInterval(() => {
+    //   if (this.lineData.x2 >= newX2) {
+    //     clearInterval(timer)
+    //   }
+    //   this.drawLine()
+    // }, 16);
+
+    // this.line = requestAnimationFrame(this.drawLine.bind(this))
 
   }
   _bind() {

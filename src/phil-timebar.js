@@ -421,11 +421,10 @@ export default class PhilTimebar {
           angle,
           x,
           y,
-          originY
+          originY,
+          hasShow: false
         })
         window[itemId].draw()
-
-
       } else {
         window[itemId].x = x
         window[itemId].y = y
@@ -435,10 +434,8 @@ export default class PhilTimebar {
         window[itemId].originY = originY
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
+        window[itemId].hasShow = true
         window[itemId].draw()
-        TweenLite.to(window[itemId], 1, {
-          y
-        })
       }
     }
 
@@ -463,6 +460,7 @@ export default class PhilTimebar {
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              nowPhilNode.hasShow = false
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
@@ -471,6 +469,7 @@ export default class PhilTimebar {
             if (nowPhilNode.canDraw) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              nowPhilNode.hasShow = false
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
@@ -478,6 +477,7 @@ export default class PhilTimebar {
             if (nowPhilNode.canDraw) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              nowPhilNode.hasShow = false
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
@@ -508,8 +508,6 @@ export default class PhilTimebar {
         this['totalHeight' + totalHeight].westRenderList = _.cloneDeep(this.westRenderList)
         this['totalHeight' + totalHeight].eastRenderList = _.cloneDeep(this.eastRenderList)
         if (this.tabIndex == 0) {
-
-
           this.westRenderList.forEach(nowPhilNode => {
             if (nowPhilNode.canDraw) {
               if (nowPhilNode.saying) {
@@ -522,10 +520,6 @@ export default class PhilTimebar {
           })
 
         } else if (this.tabIndex == 1) {
-
-
-
-
           this.westRenderList.forEach(nowPhilNode => {
             if (nowPhilNode.canDraw) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
@@ -540,7 +534,10 @@ export default class PhilTimebar {
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
-
+          // Promise.all(avatarQueue).then(() => {
+          //   console.log('cancel')
+          //   ruler.animateCancel()
+          // })
 
         } else if (this.tabIndex == 2) {
 
@@ -666,6 +663,7 @@ export default class PhilTimebar {
               // 如果上一个节点是折线显示中
               // 那么当前这个节点就不应被画
               nowPhilNode.canDraw = false
+              nowPhilNode.hasShow = false
               // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
 
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
@@ -698,6 +696,7 @@ export default class PhilTimebar {
         } else {
           // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
           nowPhilNode.canDraw = false
+          nowPhilNode.hasShow = false
           let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
           if (hasNodeList && hasNodeList.length) {
             let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -734,7 +733,7 @@ export default class PhilTimebar {
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
       if (isPrevCoinCide && isNextCoinCide) {
         // 如果与上下节点都重合那么直接忽略
-        // nowPhilNode.canDraw = false
+        // nowPhilNode.canDraw = false 
         let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
         if (hasNodeList && hasNodeList.length) {
           let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -747,6 +746,7 @@ export default class PhilTimebar {
           if (prevPhilNode.angle > 0) {
             // 如果上一个节点重合，并且上一个节点是折线绘制
             nowPhilNode.canDraw = false
+            nowPhilNode.hasShow = false
             let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
             if (hasNodeList && hasNodeList.length) {
               let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -773,6 +773,7 @@ export default class PhilTimebar {
               return nowPhilNode
             } else {
               nowPhilNode.canDraw = false
+              nowPhilNode.hasShow = false
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
                 let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -808,6 +809,7 @@ export default class PhilTimebar {
               return nowPhilNode
             } else {
               nowPhilNode.canDraw = false
+              nowPhilNode.hasShow = false
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
                 let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -827,6 +829,7 @@ export default class PhilTimebar {
               return nowPhilNode
             } else {
               nowPhilNode.canDraw = false
+              nowPhilNode.hasShow = false
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
                 let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -849,6 +852,7 @@ export default class PhilTimebar {
             return nowPhilNode
           } else {
             nowPhilNode.canDraw = false
+            nowPhilNode.hasShow = false
             let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
             if (hasNodeList && hasNodeList.length) {
               let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -858,6 +862,7 @@ export default class PhilTimebar {
           }
         } else {
           nowPhilNode.canDraw = false
+          nowPhilNode.hasShow = false
           let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
           if (hasNodeList && hasNodeList.length) {
             let index = renderList.findIndex(item => item.id == hasNodeList[0].id)

@@ -83,7 +83,8 @@ export default class Timebar {
       onAnimateFinish() { },
       store: {
         scale: 1
-      }
+      },
+      canAnimate: true
     }, props);
 
 
@@ -113,8 +114,8 @@ export default class Timebar {
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-    // window.requestAnimationFrame(this.render.bind(this))
-    this.render();
+    this.render()
+    // this.animateStart()
     this.bind();
 
 
@@ -162,9 +163,23 @@ export default class Timebar {
     this.onRender(renderData);
     this.ctx.restore();
     // 如果长时间没有操作停止 requestAnimationFrame
-    // window.requestAnimationFrame(this.render.bind(this))
+    // window.cancelAnimationFrame(this.animate)
+    window.requestAnimationFrame(this.render.bind(this))
 
 
+  }
+  animateStart() {
+    if (this.canAnimate) {
+      this.canAnimate = false
+      this.render()
+      setTimeout(() => {
+        this.canAnimate = true
+        this.animateCancel()
+      }, 3000);
+    }
+  }
+  animateCancel() {
+    window.cancelAnimationFrame(this.animate)
   }
   /**
    * 更新当前状态总宽度
@@ -459,7 +474,7 @@ export default class Timebar {
       onUpdateParams: ['{ self }'],
       onUpdate: (tn) => {
         this.updateBufferYears();
-        this.render();
+        // this.render();
         if (cb) {
           cb()
         } else {
@@ -556,7 +571,7 @@ export default class Timebar {
         this.updateTotalWidth();
         this.updateBufferYears();
         this.setCenterByTime(centerTime, 0, true, cb);
-        this.render()
+        // this.render()
 
         if (cb) {
           cb()
@@ -648,7 +663,9 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    this.render()
+    // this.canAnimate = true
+    // this.animateStart()
+    // this.render()
     /**
      * 触发外部事件
      */
@@ -736,8 +753,9 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    // this.drawed = false
-    this.render()
+    // this.canAnimate = true
+    // this.animateStart()
+    // this.render()
     /**
      * 触发外部事件
      */
@@ -888,7 +906,7 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        this.render();
+        // this.render();
         this.onChange(this);
       }
     }
