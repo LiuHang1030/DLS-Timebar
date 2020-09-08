@@ -30,7 +30,7 @@ export default class Timebar {
       maxUnitWidth: 32,
       totalWidth: 0,
       unitTime: 40,
-      minUnitTime: 1, // 最小刻度
+      minUnitTime: 0.1, // 最小刻度
       maxUnitTime: 40, // 最大刻度
       zoomSpeed: 0.5,
       touchZoomSpeed: 0.5,
@@ -220,10 +220,12 @@ export default class Timebar {
     this.ctx.fillStyle = '#999999';
     let loneLineCounter = 0;
 
-
-
     for (let i = 0; i > this.minYear; i -= this.unitTime) {
-      let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
+      if (i < this.bufferYears.min || i > this.bufferYears.max) {
+        loneLineCounter++;
+        continue;
+      }
+      let y = Math.floor(-(loneLineCounter + 1) * this.unitWidth + this.zeroX);
       let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
       this.drawLine(y, isLongUnit ? 20 : 8);
@@ -232,20 +234,24 @@ export default class Timebar {
       if (isLongUnit) {
         this.drawText(i - this.unitTime, y)
       }
-
       loneLineCounter++;
 
     }
     loneLineCounter = 0
-    for (let i = 1; i < this.maxYear; i += this.unitTime) {
+    for (let j = 1; j < this.maxYear; j += this.unitTime) {
+      // console.log(j)
+      if (j < this.bufferYears.min || j > this.bufferYears.max) {
+        loneLineCounter++;
+        continue;
+      }
 
-      let y = loneLineCounter * this.unitWidth + this.zeroX;;
+      let y = Math.floor(loneLineCounter * this.unitWidth + this.zeroX);
       let isLongUnit = loneLineCounter % 10 == 0;
 
 
-      let text = i - 1;
-      if (i == 1) {
-        text = `${i}AD`
+      let text = j - 1;
+      if (j == 1) {
+        text = `${j}AD`
       }
 
       this.drawLine(y, isLongUnit ? 20 : 8);
@@ -253,7 +259,6 @@ export default class Timebar {
       if (isLongUnit) {
         this.drawText(text, y)
       }
-
       loneLineCounter++;
     }
     /**
@@ -346,15 +351,19 @@ export default class Timebar {
   }
 
   drawText(year, y) {
-    let month = dateUtil.yearToMonth(year, 'short-en');
-    let text = Math.floor(year);
+    // let month = dateUtil.yearToMonth(year, 'short-en');
+    // let text = Math.floor(year);
 
-    if (month != 'Jan.') {
-      text += ' ' + month;
+    // if (month != 'Jan.') {
+    //   text += ' ' + month;
+    // }
+    let text = Math.floor(year);
+    if (text !== text) {
+      text = 1;
     }
     this.ctx.beginPath();
     this.ctx.textAlign = "center";
-    this.ctx.fillText(text < 0 ? `${Math.abs(year)}BC` : year, Math.round(this.centerPx - 30), y + 3)
+    this.ctx.fillText(year < 0 ? `${Math.abs(text)}BC` : text, Math.round(this.centerPx - 30), y + 3)
     this.ctx.closePath();
   }
 
@@ -443,7 +452,6 @@ export default class Timebar {
 
     let start = this.getTimeByPixel(this.centerHeight - this.startOffsetPx)
     let end = this.getTimeByPixel(this.centerHeight + this.endOffsetPx)
-    console.log(start)
     return {
       start,
       end
@@ -702,14 +710,12 @@ export default class Timebar {
      */
     let zoomRatio = this.maxUnitWidth / this.minUnitWidth;
 
-
-
     if (newUnitWidth > this.maxUnitWidth) {
       if (this.unitTime <= this.minUnitTime) {
         return
       }
       newUnitWidth = this.minUnitWidth;
-      newUnitTime = Math.floor(this.unitTime / zoomRatio);
+      newUnitTime = this.unitTime / zoomRatio;
     }
 
 
@@ -725,6 +731,7 @@ export default class Timebar {
     }
 
 
+
     /**
      * 如果缩放超过边界值，则不做任何处理，直接return
      */
@@ -732,9 +739,10 @@ export default class Timebar {
      * 如果10个刻度小于一年则不再缩放
      */
     let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
-    if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
-      return;
-    }
+
+    // if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
+    //   return;
+    // }
 
 
     /**
@@ -742,7 +750,6 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-
 
     /**
      * 更新总长度
@@ -771,7 +778,6 @@ export default class Timebar {
    * zoom event
    */
   _mouseWheel(e) {
-
     if (!this.scalable) {
       return;
     }
@@ -927,7 +933,25 @@ export default class Timebar {
         this.mousedownPos.x2 = events2.pageX;
       }
       if (!this.mousedownPos.y2) {
-        this.mousedownPos.y2 = events2.pageY;
+        this.mousedownPos.xy = events2.pageY;
+      }
+      var zoom = this.getDistance({
+        x: events.pageX,
+        y: events.pageY
+      }, {
+        x: events2.pageX,
+        y: events2.pageY
+      }) /
+        this.getDistance({
+          x: this.mousedownPos.x,
+          y: this.mousedownPos.y
+        }, {
+          x: this.mousedownPos.x2,
+          y: this.mousedownPos.y2
+        });
+      var newScale = this.store.originScale * zoom;
+      if (newScale > 3) {
+        newScale = 3;
       }
       var zoom = this.getDistance({
         x: events.pageX,
