@@ -10,8 +10,9 @@ let nodesList = {},
     maxYear = 0,
     minRatio = 0,
     step = 0,
+    nowLevel = 0,
     screenHeight = 0,
-    nodeRadius = 120;
+    nodeRadius = 50;
 
 function reCalcExistsNodes() {
     let before = -1;
@@ -32,7 +33,7 @@ function reCalcExistsNodes() {
 }
 
 function getNeighborExists(index) {
-    let before = index, after = index, length = nodes.length;
+    let before = index, after = index, length = nodesList.length;
     while(before >= 0) {
         if(nodesList[before].layout) {
             break;
@@ -51,31 +52,36 @@ function getNeighborExists(index) {
     return {before, after}
 }
 
-function checkPositionWithBeforeNode(node, nodeBefore) {
-    let diff = (node.year - nodeBefore.year) / ratio;
-    if(nodeBefore.layout.status === STATUS.ST) {
-        if(diff >= nodeRadius) {
-            return {
-                y: nodeBefore.layout.y + diff,
-                zoom: ratio,
-                status: STATUS.ST
+function checkPositionWithBeforeNode(node, nodeBefore, max = null) {
+    let originY = (node.year - minYear) / ratio;
+    let diff = originY - nodeBefore.layout.y;
+    if(diff >= nodeRadius) {
+        if(max && originY > max) {
+            if(nodeBefore.layout.status === STATUS.ST) {
+                return {
+                    y: nodeBefore.layout.y + nodeRadius,
+                    zoom: ratio,
+                    status: STATUS.DS
+                }
+            }
+            else {
+                return false;
             }
         }
         else {
             return {
-                y: nodeBefore.layout.y + nodeRadius,
+                y: originY,
                 zoom: ratio,
-                status: STATUS.DS
+                status: STATUS.ST
             }
         }
     }
     else {
-        let originY = (node.year - minYear) / ratio;
-        if(originY >= nodeBefore.layout.y + nodeRadius) {
+        if(nodeBefore.layout.status === STATUS.ST) {
             return {
-                y: originY,
+                y: nodeBefore.layout.y + nodeRadius,
                 zoom: ratio,
-                status: STATUS.ST
+                status: STATUS.DS
             }
         }
         else {
@@ -86,6 +92,13 @@ function checkPositionWithBeforeNode(node, nodeBefore) {
 
 function getNodeStatus(node, index) {
     let {before, after} = getNeighborExists(index);
+    // if(node.itemId == '57e1ef980bd1be123f524e5e') {
+    //     console.log(node, nodesList[before], nodesList[after]);
+    //     debugger
+    // }
+    // if(ratio >= 0.001 && ratio < 0.002) {
+    //     console.log(node, nodesList[before], nodesList[after])
+    // }
     if(before < 0 && after < 0) {
         return {
             y: (node.year - minYear) / ratio,
@@ -95,48 +108,72 @@ function getNodeStatus(node, index) {
     }
     else if(before >= 0 && after < 0) {
         let nodeBefore = nodesList[before];
-        return checkPositionWithBeforeNode(node, nodeBefore);
+        let status = checkPositionWithBeforeNode(node, nodeBefore);
+        return status
     }
     else if(before >= 0 && after >= 0) {
         let nodeBefore = nodesList[before], nodeAfter = nodesList[after];
-        let distance = nodeAfter.layout.y - nodeBefore.layout.y;
-        if(distance >= nodeRadius) {
-            return checkPositionWithBeforeNode(node, nodeBefore)
+        let originY = (node.year - minYear) / ratio;
+        if((nodeAfter.layout.y - originY) >= nodeRadius && (nodeAfter.layout.y - nodeBefore.layout.y) >= nodeRadius * 2) {
+            return checkPositionWithBeforeNode(node, nodeBefore);
+        }
+        else {
+            return false
+        }
+    }
+    else if(before < 0 && after >= 0) {
+        let nodeAfter = nodesList[after];
+        let originY = (node.year - minYear) / ratio;
+        if((nodeAfter.layout.y - originY) >= nodeRadius) {
+            return {
+                y: originY,
+                zoom: ratio,
+                status: STATUS.ST
+            }
         }
         else {
             return false
         }
     }
     else {
-        return false
+        return false;
     }
 }
+
 export default function calcLayout(props) {
     nodes = props.nodes;
     minYear = props.minYear; 
     maxYear = props.maxYear;
-    minRatio = props.minRatio || 2.9;
-    step = props.step || 0.01;
+    minRatio = props.minRatio || 0.001;
+    step = props.step || 0.001;
     screenHeight = props.screenHeight || window.innerHeight;
+    nodeRadius = props.radius || 50;
 
     nodesList = JSON.parse(JSON.stringify(nodes));
 
-    ratio = Math.floor((maxYear - minYear) / window.innerHeight);
+    ratio = Math.ceil((maxYear - minYear) / window.innerHeight);
     while(ratio > minRatio) {
         reCalcExistsNodes(nodesList);
+        nowLevel = [...new Set(nodesList.filter(node => !node.layout).map(node => node.importance))].sort((a,b) => a-b)[0];
+        // console.log(nowLevel)
+        // console.log(nodesList.filter(node => node.layout))
+        // console.log(nodesList.filter(node => !node.layout && node.importance == nowLevel))
+        // console.log(ratio)
         for(let i = 0; i < nodesList.length; i ++) {
             let node = nodesList[i];
-            if(nodesList[i].layout) {
+            if(node.layout || node.importance > nowLevel) {
                 continue;
             }
             else {
                 let status = getNodeStatus(node, i);
                 if(status) {
-                    nodesList[i].layout = status;
+                    node.layout = status;
                 }
             }
         }
         ratio -= step;
     }
-    console.log(nodesList.filter(node => node.layout).map(node => node.layout))
+
+    console.log(nodesList.filter(node => !node.layout))
+    return nodesList;
 }
