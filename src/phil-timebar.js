@@ -78,6 +78,8 @@ export default class PhilTimebar {
       $html: this.$html,
       canvas: this.canvas,
       ctx: this.ctx,
+      offscreenCanvas: this.offscreenCanvas,
+      offscreenCtx: this.offscreenCtx,
       minYear: this.minYear,
       maxYear: this.maxYear,
       unitTime: 40,
@@ -361,7 +363,6 @@ export default class PhilTimebar {
     this.eastLevel3Data = this.getLevelData(2, 'EAST')
     this.eastLevel4Data = this.getLevelData(3, 'EAST')
     this.westLevel1Data = this.getLevelData(1.1, 'WEST')
-    console.log(this.westLevel1Data)
     this.westLevel2Data = this.getLevelData(1.2, 'WEST')
     this.westLevel3Data = this.getLevelData(2, 'WEST')
     this.westLevel4Data = this.getLevelData(3, 'WEST')
@@ -438,7 +439,6 @@ export default class PhilTimebar {
           x,
           y,
           originY,
-          hasShow: false
         })
         window[itemId].draw()
       } else {
@@ -470,6 +470,7 @@ export default class PhilTimebar {
 
         if (this.tabIndex == 0) {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
@@ -477,6 +478,10 @@ export default class PhilTimebar {
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
@@ -509,6 +514,7 @@ export default class PhilTimebar {
           })
         } else if (this.tabIndex == 2) {
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
@@ -516,6 +522,10 @@ export default class PhilTimebar {
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
@@ -536,6 +546,7 @@ export default class PhilTimebar {
         this['totalHeight' + totalHeight].eastRenderList = _.cloneDeep(this.eastRenderList)
         if (this.tabIndex == 0) {
           this.westRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
@@ -543,30 +554,44 @@ export default class PhilTimebar {
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
 
         } else if (this.tabIndex == 1) {
           this.westRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
           this.eastRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
         } else if (this.tabIndex == 2) {
-
           this.eastRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               if (nowPhilNode.saying) {
@@ -574,6 +599,10 @@ export default class PhilTimebar {
               }
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })

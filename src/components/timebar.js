@@ -60,7 +60,8 @@ export default class Timebar {
         min: 0,
         max: 0,
       },
-
+      canRender: true,
+      tickerTime: 5, // second
       /**
        * 滑动前后的阈值， 正常左侧starttime位置最多可以滑动到中间位置
        * startOffsetPx将会减少这个值，使之
@@ -114,12 +115,34 @@ export default class Timebar {
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-    this.render()
-    // this.animateStart()
+    // this.render()
+    this.tickerStart()
     this.bind();
+  }
 
+  tickerStart() {
+    if (this.canRender) {
+      this.canRender = false
+      this.render()
+      setTimeout(() => {
+        this.tickerStop()
+      }, this.tickerTime * 1000);
+    }
+  }
+  tickerStop() {
+    this.canRender = true
+    window.cancelAnimationFrame(this.ticker)
+  }
+  throttle(fn, gapTime) {
+    let _lastTime = null;
 
-
+    return function () {
+      let _nowTime = + new Date()
+      if (_nowTime - _lastTime > gapTime || !_lastTime) {
+        fn();
+        _lastTime = _nowTime
+      }
+    }
   }
   createCanvas() {
     this.$html = $(document.createElement('div'))
@@ -164,7 +187,7 @@ export default class Timebar {
     this.ctx.restore();
     // 如果长时间没有操作停止 requestAnimationFrame
     // window.cancelAnimationFrame(this.animate)
-    window.requestAnimationFrame(this.render.bind(this))
+    this.ticker = window.requestAnimationFrame(this.render.bind(this))
 
 
   }
@@ -650,7 +673,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-
+    this.tickerStart()
     /**
      * 触发外部事件
      */
@@ -738,9 +761,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    // this.canAnimate = true
-    // this.animateStart()
-    // this.render()
+    this.tickerStart()
     /**
      * 触发外部事件
      */
@@ -895,7 +916,7 @@ export default class Timebar {
          */
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
-        // this.render();
+        this.tickerStart()
         this.onChange(this);
       }
     }

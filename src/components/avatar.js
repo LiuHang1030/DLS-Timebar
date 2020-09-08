@@ -54,6 +54,7 @@ export default class Avatar {
         opacity: 0
       }
     }
+    this.draw()
   }
 
   hide() {
@@ -76,9 +77,9 @@ export default class Avatar {
         })
       } else {
         TweenLite.to(this.lineData, 1, {
-          x2: newX2,
-          y: newY,
-          opacity: 1,
+          x2: this.centerPx,
+          y: this.y,
+          opacity: 0,
           onUpdateParams: ['{ self }'],
           onComplete: (tn) => {
 
@@ -109,18 +110,18 @@ export default class Avatar {
       }
     }
 
-    const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
-    this.drawCircle(this.x, this.y)
-    this.drawText(this.philName, this.x, this.y + this.size + 20)
-    this.drawText(this.born, this.x, this.y + this.size + 35, true)
-    this.drawLine(lineMoveToX, this.y, this.originY)
+    // const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
+    // this.drawCircle(this.x, this.y)
+    // this.drawText(this.philName, this.x, this.y + this.size + 20)
+    // this.drawText(this.born, this.x, this.y + this.size + 35, true)
+    // this.drawLine(lineMoveToX, this.y, this.originY)
   }
   draw() {
-
     let newX1 = this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35
     let newX2 = this.originType === 'EAST' ? this.x - 35 : this.x + 35;
     let newY = this.y
     if (!this.hasShow) {
+      this.hasShow = true
       if (this.originType == 'EAST') {
         if (this.angle > 0) {
           // 先画折线
@@ -131,7 +132,7 @@ export default class Avatar {
             opacity: 1,
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
-
+              this.hasShow = true
             }
           })
         } else {
@@ -141,7 +142,7 @@ export default class Avatar {
             opacity: 1,
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
-
+              this.hasShow = true
             }
           })
         }
@@ -154,7 +155,7 @@ export default class Avatar {
             opacity: 1,
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
-
+              this.hasShow = true
             }
           })
         } else {
@@ -164,6 +165,7 @@ export default class Avatar {
             opacity: 1,
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
+              this.hasShow = true
             }
           })
         }
@@ -173,19 +175,37 @@ export default class Avatar {
       this.lineData.originY = this.originY
     }
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
-    this.drawCircle(this.x, this.y)
-    this.drawText(this.philName, this.x, this.y + this.size + 20)
-    this.drawText(this.born, this.x, this.y + this.size + 35, true)
-    this.drawLine(lineMoveToX, this.y, this.originY)
+
+    // this.createCacheAvatar()
+    // this.ctx.drawImage(this.cacheCanvas, this.x, this.y, 2 * this.size, 2 * this.size)
+    // if (this.cacheAvatar) {
+
+    // } else {
+
+    //   console.log(this.cacheAvatar)
+    // }
+    this.drawCircle(this.ctx, this.x, this.y)
+    this.drawText(this.ctx, this.philName, this.x, this.y + this.size + 20)
+    this.drawText(this.ctx, this.born, this.x, this.y + this.size + 35, true)
+    this.drawLine(this.ctx, lineMoveToX, this.y, this.originY)
   }
-  drawCircle(x, y) {
-    this.ctx.beginPath()
-    this.ctx.lineWidth = 3;
-    this.ctx.fillStyle = `rgba(255, 255, 255, ${this.lineData.opacity})`
-    this.ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
-    this.ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
-    this.ctx.fill();
-    this.ctx.stroke();
+  createCacheAvatar(x, y, vx, vy, useCache) {
+    this.cacheCanvas = document.createElement("canvas");
+    this.cacheCtx = this.cacheCanvas.getContext("2d");
+    this.cacheCanvas.width = 2 * this.size;
+    this.cacheCanvas.height = 2 * this.size;
+
+    this.drawText(this.cacheCtx, this.philName, this.x, this.y + this.size + 20)
+  }
+
+  drawCircle(ctx, x, y) {
+    ctx.beginPath()
+    ctx.lineWidth = 3;
+    ctx.fillStyle = `rgba(255, 255, 255, ${this.lineData.opacity})`
+    ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
+    ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
+    ctx.fill();
+    ctx.stroke();
 
 
     if (!this.img) {
@@ -198,45 +218,47 @@ export default class Avatar {
     } else {
       let imgX = x - this.size
       let imgY = y - this.size
-      this.drawRadiusImage(this.img, imgX, imgY, this.size)
+      this.drawRadiusImage(ctx, this.img, imgX, imgY, this.size)
     }
 
     // this.drawRect('I', x, y + 10)
-    this.ctx.closePath()
+    ctx.closePath()
 
   }
 
-  drawText(text, x, y, born = false) {
-    this.ctx.beginPath()
-    this.ctx.font = '12px sans-serif';
-    this.ctx.strokeStyle = born ? 'rgba(255, 255, 255, 0.1)' : '#fff'
-    this.ctx.textAlign = 'center'
-    this.ctx.textBaseline = 'bottom';
-    this.ctx.fillText(text, x, y);
-    this.ctx.stroke()
-    this.ctx.closePath()
+  drawText(ctx, text, x, y, born = false) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.font = '12px sans-serif';
+    ctx.strokeStyle = born ? 'rgba(255, 255, 255, 0.1)' : '#fff'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(text, x, y);
+    ctx.stroke()
+    ctx.closePath()
+    ctx.restore()
   }
-  drawRadiusImage(img, x, y, r) {
-    this.ctx.save()
-    this.ctx.beginPath()
+  drawRadiusImage(ctx, img, x, y, r) {
+    ctx.save()
+    ctx.beginPath()
     var d = 2 * r;
     var cx = x + r;
     var cy = y + r;
-    this.ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-    this.ctx.clip();
-    this.ctx.drawImage(img, x, y, d, d);
-    this.ctx.closePath()
-    this.ctx.restore()
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.clip();
+    ctx.drawImage(img, x, y, d, d);
+    ctx.closePath()
+    ctx.restore()
   }
-  drawRect(text, x, y, w = 50, h = 10) {
-    this.ctx.beginPath()
-    this.ctx.fillStyle = '#a0365b'
-    this.ctx.fillRect(x - w / 2, y, w, h);
-    this.ctx.strokeStyle = '#FFFFFF'
-    this.ctx.fillText(text, x - w / 2, y);
-    this.ctx.stroke()
-    this.ctx.fill()
-    this.ctx.closePath()
+  drawRect(ctx, text, x, y, w = 50, h = 10) {
+    ctx.beginPath()
+    ctx.fillStyle = '#a0365b'
+    ctx.fillRect(x - w / 2, y, w, h);
+    ctx.strokeStyle = '#FFFFFF'
+    ctx.fillText(text, x - w / 2, y);
+    ctx.stroke()
+    ctx.fill()
+    ctx.closePath()
   }
   drawLine(x, y, originY, animate = true) {
     this.ctx.beginPath()
