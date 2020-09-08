@@ -407,6 +407,21 @@ export default class PhilTimebar {
     }
 
   }
+  hideAvatar(avatarData) {
+    if (avatarData) {
+      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle } = avatarData
+      window[itemId].x = x
+      window[itemId].y = y
+      window[itemId].originType = originType
+      window[itemId].philName = itemName
+      window[itemId].born = timeStr
+      window[itemId].originY = originY
+      window[itemId].angle = angle
+      window[itemId].avatarUrl = avatarUrl
+      window[itemId].hasShow = false
+      // window[itemId].hide()
+    }
+  }
   drawAvatar(avatarData,) {
     if (avatarData) {
       const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle } = avatarData
@@ -435,7 +450,7 @@ export default class PhilTimebar {
         window[itemId].originY = originY
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
-        window[itemId].hasShow = true
+        // window[itemId].hasShow = true
         window[itemId].draw()
       }
     }
@@ -467,21 +482,28 @@ export default class PhilTimebar {
           })
         } else if (this.tabIndex == 1) {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
             if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
-              nowPhilNode.hasShow = false
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
+            const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-
             if (nowPhilNode.canDraw && isWithInScreen) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
-              nowPhilNode.hasShow = false
+              if (window[itemId]) {
+                window[itemId].hasShow = false
+                window[itemId].hide()
+              }
               this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
             }
           })

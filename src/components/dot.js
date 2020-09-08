@@ -14,8 +14,9 @@ export default class dot {
 
     this.centerPx = this.$html.width() / 2
     this.x = this.centerPx
-    this.alpha = (this.zoom / this.nowZoom) + 0.3
+    this.alpha = (0.7 * this.nowZoom + 0.3 * this.zoom - 1.7) / (this.zoom - 1.7)
     this.createDot()
+
   }
   createDot() {
     this.drawCircle(this.x, this.y)
