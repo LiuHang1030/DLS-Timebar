@@ -100,6 +100,7 @@ export default class PhilTimebar {
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
         this.zoomLevel = (screenEndTime - screenStartTime) / window.innerHeight;
+        console.log(this.zoomLevel)
         this.calculatePosition()
       }
     })
@@ -371,13 +372,12 @@ export default class PhilTimebar {
               canvas: this.canvas,
               ctx: this.ctx,
               y: node.originY,
-              zoom: this.zoomLevel,
-              nowZoom: node.layout.zoom
+              zoom: node.layout.zoom,
+              nowZoom: this.zoomLevel
             })
           }
         }
     })
-    console.log(nodesDrawCount)
     if(nodesDrawCount == 0) {
       this.drawBubbles(direction)
     }

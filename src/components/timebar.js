@@ -766,6 +766,9 @@ export default class Timebar {
     var events2 = touches[1];
 
 
+    // let 
+
+
     this.mousedownPos = {
       x: events.clientX,
       y: events.clientY
@@ -774,21 +777,14 @@ export default class Timebar {
       ...this.translate
     };
     if (events2) {
-      // 双指初次落点
-      this.touchZoomDownPos = {
+      this.mousedownPos = {
         x: events.clientX,
         y: events.clientY,
         x2: events2.clientX,
         y2: events2.clientY,
       };
-      this.touchZoomDownPos.centerY = Math.floor((this.touchZoomDownPos.y2 + this.touchZoomDownPos.y) / 2)
-      this.touchZoomDownPos.centerYear = this.getTimeByPixel(this.touchZoomDownPos.centerY + this.translate.y);
-    }
-    else {
-      this.mousedownPos = {
-        x: events.clientX,
-        y: events.clientY
-      };
+      this.touchCenter = parseInt((events.clientY + events2.clientY) / 2)
+      this.$html.find($('p')).html(this.getTimeByPixel(this.touchCenter))
     }
 
   }
@@ -797,31 +793,11 @@ export default class Timebar {
     if (!this.store.moveable) {
       return;
     }
+
     var touches = e.originalEvent.targetTouches;
 
     var events = touches[0];
     var events2 = touches[1];
-
-
-    if (events2) {
-      // 双指操作
-      if (!this.mousedownPos.x2) {
-        this.mousedownPos.x2 = events2.pageX;
-      }
-      if (!this.mousedownPos.y2) {
-        this.mousedownPos.y2 = events2.pageY;
-      }
-      var zoom = Math.max((this.mousedownPos.y - events.pageY) / 100, (events2.pageY - this.mousedownPos.y2) / 100)
-      let translateY = `${(this.mousedownPos.y - events.pageY) / 100},${(events2.pageY - this.mousedownPos.y2) / 100}`
-
-      this.$html.find($('p')).html(translateY)
-      var newScale = this.store.originScale * zoom;
-      if (newScale > 3) {
-        newScale = 3;
-      }
-      // this._zoom(zoom);
-      this.store.scale = newScale;
-    }
 
     if (events) {
       // 单指操作
@@ -844,12 +820,137 @@ export default class Timebar {
         this.onChange(this);
       }
     }
+
+    if (events2) {
+      // 双指操作
+      if (!this.mousedownPos.x2) {
+        this.mousedownPos.x2 = events2.pageX;
+      }
+      if (!this.mousedownPos.y2) {
+        this.mousedownPos.xy = events2.pageY;
+      }
+      var zoom = this.getDistance({
+        x: events.pageX,
+        y: events.pageY
+      }, {
+        x: events2.pageX,
+        y: events2.pageY
+      }) /
+        this.getDistance({
+          x: this.mousedownPos.x,
+          y: this.mousedownPos.y
+        }, {
+          x: this.mousedownPos.x2,
+          y: this.mousedownPos.y2
+        });
+      var newScale = this.store.originScale * zoom;
+      if (newScale > 3) {
+        newScale = 3;
+      }
+
+      if (this.store.scale > newScale) {
+        this._touchZoom(-this.touchZoomSpeed);
+      } else {
+        this._touchZoom(this.touchZoomSpeed);
+      }
+      this.store.scale = newScale;
+    }
   }
   _touchend(e) {
     this.store.moveable = false;
     // this.onClick(e)
     delete this.mousedownPos.x2;
     delete this.mousedownPos.y2;
+  }
+  _touchZoom(delta) {
+
+
+    /**
+     * 定义新的参数
+     */
+    let newUnitWidth = this.unitWidth;
+    let newUnitTime = this.unitTime;
+    newUnitWidth += delta;
+
+
+
+    /**
+     * 获取现在中心时间
+     */
+    let centerTime = parseInt(this.getTimeByPixel(this.touchCenter));
+
+    /**
+     * 计算缩放后的单位长度
+     */
+    let zoomRatio = this.maxUnitWidth / this.minUnitWidth;
+
+
+
+    if (newUnitWidth > this.maxUnitWidth) {
+      if (this.unitTime <= this.minUnitTime) {
+        return
+      }
+      newUnitWidth = this.minUnitWidth;
+      newUnitTime = Math.floor(this.unitTime / zoomRatio);
+    }
+
+
+    if (newUnitWidth < this.minUnitWidth) {
+      if (this.unitTime >= this.maxUnitTime) {
+        return
+      }
+      newUnitWidth = this.maxUnitWidth;
+      /**
+       * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
+       */
+      newUnitTime = this.unitTime * zoomRatio;
+    }
+
+
+    /**
+     * 如果缩放超过边界值，则不做任何处理，直接return
+     */
+    /**
+     * 如果10个刻度小于一年则不再缩放
+     */
+    let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
+    if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
+      return;
+    }
+
+
+    /**
+     * 更新数值
+     */
+    this.unitTime = newUnitTime;
+    this.unitWidth = newUnitWidth;
+
+
+    /**
+     * 更新总长度
+     */
+    this.updateTotalWidth();
+    this.setCenterByTime(centerTime);
+    this._fixOverFlowTranslate(this.translate.y);
+
+    this.updateBufferYears();
+
+    /**
+     * 如果总的可选区域小于offsetAreaDuration时间跨度，则固定为时间跨度的宽度
+     */
+    if (offsetAreaDuration >= this.maxYear - this.minYear) {
+      this.setTimeByOffset(this.minYear, this.maxYear);
+    }
+
+    // _zoom 方法中不再执行 render函数
+    this.render()
+    /**
+     * 触发外部事件
+     */
+    this.onChange(this);
+  }
+  getDistance(start, stop) {
+    return Math.hypot(stop.x - start.x, stop.y - start.y);
   }
 
   bind() {
