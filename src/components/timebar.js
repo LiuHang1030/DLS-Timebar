@@ -744,8 +744,6 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-    console.log(this.unitTime)
-    console.log(this.unitWidth)
 
     /**
      * 更新总长度

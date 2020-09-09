@@ -9,6 +9,7 @@ export default class dot {
       zoom: 0,
       nowZoom: 0,
       size: 6,
+      nowNode: null
     }, props)
 
 

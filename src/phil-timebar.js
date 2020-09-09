@@ -27,7 +27,7 @@ export default class PhilTimebar {
       TEXT_AREA: 10,
       minYear: -800,
       maxYear: new Date().getFullYear(),
-      unitTime: [40, 20, 10, 4, 2, 1],
+      unitTime: [40, 20, 10, 5, 2, 1],
       minUnitWidth: 16,
       maxUnitWidth: 32,
       unitWidth: 16,
@@ -90,7 +90,7 @@ export default class PhilTimebar {
         this.ruler = ruler
         this.totalHeight = totalHeight
         this.bufferYears = bufferYears
-
+        this.nowZoom = (screenEndTime - screenStartTime) / window.innerHeight;
 
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
@@ -304,6 +304,10 @@ export default class PhilTimebar {
       }
     }
 
+    console.log(eastLevel1Data)
+    console.log(westLevel1Data.filter((item) => { return !item.zoom }))
+    console.log(eastLevel3Data)
+    console.log(westLevel3Data.filter((item) => { return !item.zoom }))
   }
   calculateBubbles(bubbles, nodeList, zoom, totalHeight) {
     for (let index = 0; index < bubbles.length; index++) {
@@ -333,9 +337,12 @@ export default class PhilTimebar {
   }
   mockCheckCoinCide(prevNodeY, nowNodeY) {
 
-    const minY = prevNodeY - this.CIRCLE_DIAMETER
-    const maxY = prevNodeY + this.CIRCLE_DIAMETER
-    return minY <= nowNodeY && nowNodeY <= maxY
+    const y = prevNodeY.y
+    const minY = y - this.CIRCLE_DIAMETER
+    const maxY = y + this.CIRCLE_DIAMETER + 50
+    const targetY = nowNodeY
+    const targetMinY = targetY - this.CIRCLE_DIAMETER
+    return targetMinY < maxY
   }
   mockGetYByTime(time, totalHeight) {
     const totalTime = this.maxYear - this.minYear;
@@ -392,7 +399,7 @@ export default class PhilTimebar {
     return percent * this.totalHeight;
   }
   getLevelData(level, originType) {
-    const list = this.philData.concat([])
+    const list = this.philData
     if (originType) {
       return list.filter(phil => phil.originType === originType.toUpperCase()).filter(phil => phil.importance == level).sort((m, n) => m.year - n.year)
     } else {
@@ -453,7 +460,7 @@ export default class PhilTimebar {
     const { ruler, totalHeight } = e
     if (totalHeight) {
 
-      this.nowZoom = this.CIRCLE_DIAMETER / totalHeight
+
       this.westRenderList = []
       this.eastRenderList = []
       this.centerPx = this.ruler.centerPx
@@ -708,14 +715,21 @@ export default class PhilTimebar {
         if (!hasNotDrawNode) {
           // 判断当前节点是否与已渲染列表中的上下节点重合
           const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
-          if (isPrevCoinCide) {
+          if (nowPhilNode.itemName == '王夫之') {
+            console.log('----')
+            console.log(nowPhilNode)
+            console.log(prevPhilNode)
+            console.log(nextPhilNode)
+            console.log(isPrevCoinCide)
+          }
+          if (isPrevCoinCide && prevPhilNode.canDraw) {
             // 如果当前节点与上一个节点重合
             if (prevPhilNode.angle > 0) {
               // 如果上一个节点是折线显示中
               // 那么当前这个节点就不应被画
               nowPhilNode.canDraw = false
               nowPhilNode.hasShow = false
-              // this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+              this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
 
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
@@ -785,22 +799,90 @@ export default class PhilTimebar {
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
       if (isNextCoinCide) {
-        nowPhilNode.canDraw = false
-        let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-        if (hasNodeList && hasNodeList.length) {
-          let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-          renderList.splice(index, 1)
+        if (nextPhilNode.angle == 0) {
+          nowPhilNode.canDraw = false
+          let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+          if (hasNodeList && hasNodeList.length) {
+            let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+            renderList.splice(index, 1)
+          }
+          return nowPhilNode
+        } else {
+          return nowPhilNode
         }
-        return nowPhilNode
+
       } else {
         if (isPrevCoinCide) {
           if (prevPhilNode.angle == 0) {
-            const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
+            const prevIndexPhilNode = nodeList[index - 1] || {}
+            if (prevIndexPhilNode && prevIndexPhilNode.year == nowPhilNode.year) {
+              const angle = this.calculateNowNodeAngle(prevIndexPhilNode, nowPhilNode)
+              let cloneNowPhilNode = Object.assign({}, nowPhilNode)
+              cloneNowPhilNode.angle = angle
+              cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
+              const isPrevCoinCide = this.checkIsCoinCide(prevIndexPhilNode, cloneNowPhilNode)
+              if (!isPrevCoinCide) {
+                nowPhilNode.angle = angle
+                nowPhilNode.y = angle * 120 + nowPhilNode.y
+                nowPhilNode.canDraw = true
+                if (renderList.every(item => item.id !== nowPhilNode.id)) {
+                  renderList.push(nowPhilNode)
+                }
+                return nowPhilNode
+              } else {
+                nowPhilNode.canDraw = false
+                let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+                if (hasNodeList && hasNodeList.length) {
+                  let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+                  renderList.splice(index, 1)
+                }
+                return nowPhilNode
+              }
+            } else {
+              const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
+              let cloneNowPhilNode = Object.assign({}, nowPhilNode)
+              cloneNowPhilNode.angle = angle
+              cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
+
+              if (!isNextCoinCide) {
+                nowPhilNode.angle = angle
+                nowPhilNode.y = angle * 120 + nowPhilNode.y
+                nowPhilNode.canDraw = true
+                if (renderList.every(item => item.id !== nowPhilNode.id)) {
+                  renderList.push(nowPhilNode)
+                }
+                return nowPhilNode
+              } else {
+                nowPhilNode.canDraw = false
+                let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+                if (hasNodeList && hasNodeList.length) {
+                  let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+                  renderList.splice(index, 1)
+                }
+                return nowPhilNode
+              }
+            }
+
+          } else {
+            nowPhilNode.canDraw = false
+            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+            if (hasNodeList && hasNodeList.length) {
+              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+              renderList.splice(index, 1)
+            }
+            return nowPhilNode
+          }
+        } else {
+          // 与上下节点都不重合
+          const prevIndexPhilNode = nodeList[index - 1] || {}
+
+          if (prevIndexPhilNode && prevIndexPhilNode.year == nowPhilNode.year) {
+            const angle = this.calculateNowNodeAngle(prevIndexPhilNode, nowPhilNode)
             let cloneNowPhilNode = Object.assign({}, nowPhilNode)
             cloneNowPhilNode.angle = angle
             cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
-            const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, cloneNowPhilNode)
-            if (!isNextCoinCide) {
+            const isPrevCoinCide = this.checkIsCoinCide(prevIndexPhilNode, cloneNowPhilNode)
+            if (!isPrevCoinCide) {
               nowPhilNode.angle = angle
               nowPhilNode.y = angle * 120 + nowPhilNode.y
               nowPhilNode.canDraw = true
@@ -818,33 +900,26 @@ export default class PhilTimebar {
               return nowPhilNode
             }
           } else {
-            nowPhilNode.canDraw = false
-            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-            if (hasNodeList && hasNodeList.length) {
-              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-              renderList.splice(index, 1)
+            if (prevPhilNode.angle > 0 || prevIndexPhilNode.angle > 0) {
+              nowPhilNode.canDraw = false
+              let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+              if (hasNodeList && hasNodeList.length) {
+                let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+                renderList.splice(index, 1)
+              }
+              return nowPhilNode
+            } else {
+              nowPhilNode.angle = 0
+              nowPhilNode.canDraw = true
+              if (renderList.every(item => item.id !== nowPhilNode.id)) {
+                renderList.push(nowPhilNode)
+              }
+              return nowPhilNode
             }
-            return nowPhilNode
           }
-        } else {
-          const prevIndexPhilNode = nodeList[index - 1] || {}
 
-          if (prevPhilNode.angle > 0 || prevIndexPhilNode.angle > 0) {
-            nowPhilNode.canDraw = false
-            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-            if (hasNodeList && hasNodeList.length) {
-              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-              renderList.splice(index, 1)
-            }
-            return nowPhilNode
-          } else {
-            nowPhilNode.angle = 0
-            nowPhilNode.canDraw = true
-            if (renderList.every(item => item.id !== nowPhilNode.id)) {
-              renderList.push(nowPhilNode)
-            }
-            return nowPhilNode
-          }
+
+
         }
       }
     })
@@ -854,58 +929,51 @@ export default class PhilTimebar {
 
     for (let index = 0; index < nodelist.length; index++) {
       const nowPhilNode = nodelist[index];
-      // if (nowPhilNode.zoom) continue
       nowPhilNode.y = this.mockGetYByTime(nowPhilNode.year, totalHeight)
 
       if (index == 0) {
         if (!nowPhilNode.zoom) {
           nowPhilNode.zoom = zoom
         }
+        nowPhilNode.angle = 0
         if (renderList.every(item => item.id !== nowPhilNode.id)) {
           renderList.push(nowPhilNode)
         }
       } else {
+        // 从当前级别节点索引第2个开始
+
+        // 获取当前节点的前一个节点和下一个节点
         const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
+        // 如果在整个同级列表中，有其他节点比当前节点年份辐射范围内，但是还没有被画出,应等待那个节点被画完再进行 draw
+        // 判断当前节点是否与已渲染列表中的上下节点重合
+        const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
+        if (isPrevCoinCide) {
+          // 如果当前节点与上一个节点重合
+          if (prevPhilNode.angle > 0) {
+            // 如果上一个节点是折线显示中
+            // 那么当前这个节点就不应被画
 
-
-        const hasNotDrawNode = this.findEarlyButNotDrawNode(nodelist, renderList, nowPhilNode)
-        if (!hasNotDrawNode) {
-          prevPhilNode.y = this.mockGetYByTime(prevPhilNode.year, totalHeight)
-          const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
-          if (isPrevCoinCide) {
-            // 如果当前节点与上一个节点重合
-            if (prevPhilNode.angle > 0) {
-              // 如果上一个节点是折线显示中
-              // 那么当前这个节点就不应被画
-              let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-              if (hasNodeList && hasNodeList.length) {
-                let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-                renderList.splice(index, 1)
-              }
-            } else {
-              // 上一个节点是直线显示
-              // console.log('需要折线处理的节点')
-              const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
-              nowPhilNode.angle = angle
-              nowPhilNode.y = angle * 120 + nowPhilNode.y
-              if (!nowPhilNode.zoom) {
-                nowPhilNode.zoom = zoom
-              }
-              if (renderList.every(item => item.id !== nowPhilNode.id)) {
-                renderList.push(nowPhilNode)
-              }
-
-            }
           } else {
-            // 如果当前节点与上一个节点不重合
-            nowPhilNode.angle = 0
+            // 上一个节点是直线显示
+            // 需要折线处理的节点
             if (!nowPhilNode.zoom) {
               nowPhilNode.zoom = zoom
             }
+            const angle = this.calculateNowNodeAngle(prevPhilNode, nowPhilNode)
+            nowPhilNode.angle = angle
+            nowPhilNode.y = angle * 120 + nowPhilNode.y
+
             if (renderList.every(item => item.id !== nowPhilNode.id)) {
               renderList.push(nowPhilNode)
             }
-
+          }
+        } else {
+          // 如果当前节点与上一个节点不重合
+          if (!nowPhilNode.zoom) {
+            nowPhilNode.zoom = zoom
+          }
+          if (renderList.every(item => item.id !== nowPhilNode.id)) {
+            renderList.push(nowPhilNode)
           }
         }
       }
@@ -913,14 +981,20 @@ export default class PhilTimebar {
   }
   mapMockLowLevelNodeList(zoom, totalHeight, nodeList, renderList) {
     for (let index = 0; index < nodeList.length; index++) {
-      const nowPhilNode = nodeList[index];
+      const nowPhilNode = nodeList[index]
       nowPhilNode.y = this.mockGetYByTime(nowPhilNode.year, totalHeight)
-      // 低优先级节点 需要上下比较已经存在的节点
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
       prevPhilNode.y = this.mockGetYByTime(prevPhilNode.year, totalHeight)
       nextPhilNode.y = this.mockGetYByTime(nextPhilNode.year, totalHeight)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
+      // if (nowPhilNode.itemName == '公孙龙') {
+      //   console.log(nowPhilNode)
+      //   console.log(prevPhilNode)
+      //   console.log(nextPhilNode)
+      //   console.log(isPrevCoinCide)
+      //   console.log(isNextCoinCide)
+      // }
       if (isNextCoinCide) {
         nowPhilNode.canDraw = false
         let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
@@ -928,7 +1002,6 @@ export default class PhilTimebar {
           let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
           renderList.splice(index, 1)
         }
-        return nowPhilNode
       } else {
         if (isPrevCoinCide) {
           if (prevPhilNode.angle == 0) {
@@ -938,11 +1011,16 @@ export default class PhilTimebar {
             cloneNowPhilNode.y = angle * 120 + nowPhilNode.y
             const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, cloneNowPhilNode)
             if (!isNextCoinCide) {
-              nowPhilNode.zoom = zoom
+              nowPhilNode.angle = angle
+              nowPhilNode.y = angle * 120 + nowPhilNode.y
+              if (!nowPhilNode.zoom) {
+                nowPhilNode.zoom = zoom
+              }
               if (renderList.every(item => item.id !== nowPhilNode.id)) {
                 renderList.push(nowPhilNode)
               }
             } else {
+              nowPhilNode.canDraw = false
               let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
               if (hasNodeList && hasNodeList.length) {
                 let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
@@ -957,19 +1035,23 @@ export default class PhilTimebar {
             }
           }
         } else {
-          const prevIndexPhilNode = nodeList[index - 1] || {}
-          if (prevPhilNode.angle > 0 || prevIndexPhilNode.angle > 0) {
-            let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
-            if (hasNodeList && hasNodeList.length) {
-              let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
-              renderList.splice(index, 1)
-            }
-          } else {
+          nowPhilNode.angle = 0
+          if (!nowPhilNode.zoom) {
             nowPhilNode.zoom = zoom
-            if (renderList.every(item => item.id !== nowPhilNode.id)) {
-              renderList.push(nowPhilNode)
-            }
           }
+          if (renderList.every(item => item.id !== nowPhilNode.id)) {
+            renderList.push(nowPhilNode)
+          }
+          // const prevIndexPhilNode = nodeList[index - 1] || {}
+          // if (prevPhilNode.angle > 0 || prevIndexPhilNode.angle > 0) {
+          //   let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
+          //   if (hasNodeList && hasNodeList.length) {
+          //     let index = renderList.findIndex(item => item.id == hasNodeList[0].id)
+          //     renderList.splice(index, 1)
+          //   }
+          // } else {
+
+          // }
         }
       }
     }
