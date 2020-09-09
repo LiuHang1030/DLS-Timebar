@@ -90,7 +90,7 @@ export default class Avatar {
       if (this.angle > 0) {
         TweenLite.to(this.lineData, 1, {
           x1: this.centerPx,
-          x2: this.originType === 'EAST' ? this.centerPx + 35 : this.centerPx - 35,
+          x2: this.centerPx,
           y: this.originY,
           opacity: 0,
           onUpdateParams: ['{ self }'],
@@ -133,6 +133,7 @@ export default class Avatar {
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
               this.hasShow = true
+              this.drawing = false
             }
           })
         } else {
@@ -143,6 +144,7 @@ export default class Avatar {
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
               this.hasShow = true
+              this.drawing = false
             }
           })
         }
@@ -156,6 +158,7 @@ export default class Avatar {
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
               this.hasShow = true
+              this.drawing = false
             }
           })
         } else {
@@ -166,6 +169,7 @@ export default class Avatar {
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {
               this.hasShow = true
+              this.drawing = false
             }
           })
         }
@@ -176,26 +180,31 @@ export default class Avatar {
     }
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
 
-    // this.createCacheAvatar()
-    // this.ctx.drawImage(this.cacheCanvas, this.x, this.y, 2 * this.size, 2 * this.size)
+
     // if (this.cacheAvatar) {
-
+    //   this.ctx.drawImage(this.cacheAvatar, this.x, this.y, 2 * this.size, 2 * this.size)
     // } else {
-
-    //   console.log(this.cacheAvatar)
+    //   this.cacheAvatar = this.createCacheAvatar()
     // }
     this.drawCircle(this.ctx, this.x, this.y)
     this.drawText(this.ctx, this.philName, this.x, this.y + this.size + 20)
     this.drawText(this.ctx, this.born, this.x, this.y + this.size + 35, true)
     this.drawLine(this.ctx, lineMoveToX, this.y, this.originY)
   }
-  createCacheAvatar(x, y, vx, vy, useCache) {
+  createCacheAvatar() {
     this.cacheCanvas = document.createElement("canvas");
     this.cacheCtx = this.cacheCanvas.getContext("2d");
-    this.cacheCanvas.width = 2 * this.size;
-    this.cacheCanvas.height = 2 * this.size;
-
+    this.cacheCtx.save()
+    this.cacheCanvas.width = 2 * this.size * this.ratio;
+    this.cacheCanvas.height = 2 * this.size * this.ratio;
+    this.cacheCanvas.style.transformOrigin = '0 0'
+    this.cacheCanvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
+    this.drawCircle(this.cacheCtx, this.x, this.y)
     this.drawText(this.cacheCtx, this.philName, this.x, this.y + this.size + 20)
+    this.drawText(this.cacheCtx, this.born, this.x, this.y + this.size + 35, true)
+    this.drawText(this.cacheCtx, this.philName, this.x, this.y + this.size + 20)
+    this.cacheCtx.restore()
+    return this.cacheCanvas
   }
 
   drawCircle(ctx, x, y) {

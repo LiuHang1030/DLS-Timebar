@@ -634,7 +634,7 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio > this.maxUnitTime ? this.maxUnitTime : this.unitTime * zoomRatio;
+      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio
       // console.log('newUnitTime' + newUnitTime)
     }
 
@@ -723,8 +723,7 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio;
-      console.log('newUnitTime' + newUnitTime)
+      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio
     }
 
 
@@ -860,22 +859,10 @@ export default class Timebar {
   _touchstart(e) {
     this.onClick(e)
     var touches = e.originalEvent.targetTouches;
-    this.store.originScale = this.store.scale || 1;
+
     this.store.moveable = true;
     var events = touches[0];
     var events2 = touches[1];
-
-
-    // let 
-
-
-    this.mousedownPos = {
-      x: events.clientX,
-      y: events.clientY
-    };
-    this.downTranslate = {
-      ...this.translate
-    };
     if (events2) {
       this.mousedownPos = {
         x: events.clientX,
@@ -883,12 +870,21 @@ export default class Timebar {
         x2: events2.clientX,
         y2: events2.clientY,
       };
-
+      this.store.originScale = Math.abs((this.mousedownPos.y - this.mousedownPos.y2) / 2)
       // this.touchCenter = parseInt((events.clientY + events2.clientY) / 2)
       this.offsetTopY = Math.min(events.clientY, events2.clientY) // 获取当前缩放时候手指Y
       this.touchTopYear = this.getTimeByPixel(this.offsetTopY) // 根据 Y 得知选中的是哪个年份
       // this.touchScreenPercent = (touchTopY / this.$html.height())
-      // this.$html.find($('p')).html(this.getYbyTime(this.touchTopYear))
+      // this.$html.find($('p')).html(this.store.originScale)
+    } else {
+
+      this.mousedownPos = {
+        x: events.clientX,
+        y: events.clientY
+      };
+      this.downTranslate = {
+        ...this.translate
+      };
     }
 
   }
@@ -903,7 +899,44 @@ export default class Timebar {
     var events = touches[0];
     var events2 = touches[1];
 
-    if (events) {
+
+
+    if (events2) {
+      // 双指操作
+      // if (!this.mousedownPos.x2) {
+      //   this.mousedownPos.x2 = events2.pageX;
+      // }
+      // if (!this.mousedownPos.y2) {
+      //   this.mousedownPos.y2 = events2.pageY;
+      // }
+      // var zoom = this.getDistance({
+      //   x: events.pageX,
+      //   y: events.pageY
+      // }, {
+      //   x: events2.pageX,
+      //   y: events2.pageY
+      // }) /
+      //   this.getDistance({
+      //     x: this.mousedownPos.x,
+      //     y: this.mousedownPos.y
+      //   }, {
+      //     x: this.mousedownPos.x2,
+      //     y: this.mousedownPos.y2
+      //   });
+      var zoom = Math.abs((events.clientY - events2.clientY)) / 2
+      // - Math.abs((events2.clientY - this.mousedownPos.y2)) / 2
+      // this.$html.find($('p')).html(zoom)
+      // var newScale = this.store.originScale * zoom;
+      // if (newScale > 3) {
+      //   newScale = 3;
+      // }
+      if (this.store.scale > zoom) {
+        this._touchZoom(-this.touchZoomSpeed);
+      } else {
+        this._touchZoom(this.touchZoomSpeed);
+      }
+      this.store.scale = zoom;
+    } else {
       // 单指操作
       this.mousePos.x = events.clientX;
       this.mousePos.y = events.clientY;
@@ -923,40 +956,6 @@ export default class Timebar {
         this.tickerStart()
         this.onChange(this);
       }
-    }
-
-    if (events2) {
-      // 双指操作
-      if (!this.mousedownPos.x2) {
-        this.mousedownPos.x2 = events2.pageX;
-      }
-      if (!this.mousedownPos.y2) {
-        this.mousedownPos.y2 = events2.pageY;
-      }
-      var zoom = this.getDistance({
-        x: events.pageX,
-        y: events.pageY
-      }, {
-        x: events2.pageX,
-        y: events2.pageY
-      }) /
-        this.getDistance({
-          x: this.mousedownPos.x,
-          y: this.mousedownPos.y
-        }, {
-          x: this.mousedownPos.x2,
-          y: this.mousedownPos.y2
-        });
-      var newScale = this.store.originScale * zoom;
-      if (newScale > 3) {
-        newScale = 3;
-      }
-      if (this.store.scale > newScale) {
-        this._touchZoom(-this.touchZoomSpeed);
-      } else {
-        this._touchZoom(this.touchZoomSpeed);
-      }
-      this.store.scale = newScale;
     }
   }
   _touchend(e) {

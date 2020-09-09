@@ -19,7 +19,7 @@ export default class View {
     this.$html.attr('class', 'dls-timebar-box')
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('id', 'timebar')
-    // this.$html.append(document.createElement('p'))
+    this.$html.append(document.createElement('p'))
     this.$html.append(this.canvas)
 
     this.ctx = this.canvas.getContext('2d');
