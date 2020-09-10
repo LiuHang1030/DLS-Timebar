@@ -25,7 +25,7 @@ export default class View {
     this.$html.append(this.canvas)
 
     this.ctx = this.canvas.getContext('2d');
-    $(this.container).appendChild(this.$html[0]);
+    $(this.container).append(this.$html[0]);
   }
   _resize() {
     this.canvas.width = this.$html.width() * this.ratio;
