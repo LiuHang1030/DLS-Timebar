@@ -1,6 +1,5 @@
 import { TweenLite } from "gsap";
 
-
 export default class Avatar {
   constructor(props) {
     Object.assign(this, {
