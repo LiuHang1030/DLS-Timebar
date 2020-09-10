@@ -20,8 +20,8 @@ export default class Avatar {
       born: '',
       size: 25,
       hasShow: false,
-      numWidth: 3,
-      numHeight: 6,
+      numWidth: 5,
+      numHeight: 8,
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
@@ -238,7 +238,7 @@ export default class Avatar {
       let imgY = y - this.size
       this.drawRadiusImage(ctx, this.img, imgX, imgY, this.size)
       this.ctx.drawImage(this.outterCircle, x - this.size, y - this.size, this.size * 2, this.size * 2)
-      this.ctx.drawImage(this.importanceImage, x - this.numWidth / 2, y + this.size - 7, this.numWidth, this.numHeight)
+      this.ctx.drawImage(this.importanceImage, x - this.numWidth / 2, y + this.size - 9, this.numWidth, this.numHeight)
     }
     ctx.closePath()
     ctx.restore()

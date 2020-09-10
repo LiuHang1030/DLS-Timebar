@@ -62,10 +62,10 @@ module.exports = {
     quiet: true // necessary for FriendlyErrorsPlugin
   },
   plugins: [
-    // new HtmlWebpackPlugin({
-    //   title: 'CTIME TEST',
-    //   template: 'test/test.html'
-    // }),
+    new HtmlWebpackPlugin({
+      title: 'CTIME TEST',
+      template: 'test/test.html'
+    }),
     new CopyWebpackPlugin([{
       from: path.resolve('./static'),
       to: 'static',

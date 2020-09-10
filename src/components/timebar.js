@@ -26,8 +26,8 @@ export default class Timebar {
       maxYear: new Date().getFullYear(),
       minZoom: 1,
       maxZoom: 10,
-      minUnitWidth: 16,
-      maxUnitWidth: 32,
+      minUnitWidth: 24,
+      maxUnitWidth: 48,
       totalWidth: 0,
       unitTime: 40,
       minUnitTime: 1, // 最小刻度
@@ -35,7 +35,7 @@ export default class Timebar {
       zoomSpeed: 0.5,
       touchZoomSpeed: 0.7,
       zoom: 1,
-      unitWidth: 16,
+      unitWidth: 24,
       mousePos: {
         x: 0,
         y: 0,
@@ -654,9 +654,9 @@ export default class Timebar {
      * 如果10个刻度小于一年则不再缩放
      */
     let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
-    if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
-      return;
-    }
+    // if ((offsetAreaDuration > 0)) {
+    //   return;
+    // }
 
 
     /**
@@ -731,8 +731,18 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio
+      newUnitTime = this.unitTime * zoomRatio
     }
+    // if (newUnitWidth > this.maxUnitWidth) {
+    //   newUnitWidth = this.minUnitWidth;
+    //   newUnitTime = this.unitTime / zoomRatio;
+
+    // }
+
+    // if (newUnitWidth < this.minUnitWidth) {
+    //   newUnitWidth = this.maxUnitWidth;
+    //   newUnitTime = this.unitTime * zoomRatio;
+    // }
 
 
     /**
@@ -742,6 +752,7 @@ export default class Timebar {
      * 如果10个刻度小于一年则不再缩放
      */
     let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
+
     if ((offsetAreaDuration > 0) && (offsetAreaDuration <= 1)) {
       return;
     }

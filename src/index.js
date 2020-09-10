@@ -375,10 +375,12 @@ export default class PhilTimebar {
     this.eastLevel1Data = this.getLevelData(1.1, 'EAST')
     this.eastLevel2Data = this.getLevelData(1.2, 'EAST')
     this.eastLevel3Data = this.getLevelData(2, 'EAST')
+    // this.eastLevel3Data = this.philData.filter(phil => phil.originType === 'EAST').filter(phil => phil.importance >= 2).sort((m, n) => m.year - n.year)
     this.eastLevel4Data = this.getLevelData(3, 'EAST')
     this.westLevel1Data = this.getLevelData(1.1, 'WEST')
     this.westLevel2Data = this.getLevelData(1.2, 'WEST')
     this.westLevel3Data = this.getLevelData(2, 'WEST')
+    // this.westLevel3Data = this.philData.filter(phil => phil.originType === 'WEST').filter(phil => phil.importance >= 2).sort((m, n) => m.year - n.year)
     this.westLevel4Data = this.getLevelData(3, 'WEST')
 
   }
@@ -818,12 +820,6 @@ export default class PhilTimebar {
       const [prevPhilNode, nextPhilNode] = this.findNearestNode(renderList, nowPhilNode)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
-      if (nowPhilNode.itemName == '王夫之') {
-        console.log(nowPhilNode)
-        console.log(prevPhilNode)
-
-        console.log(hasNotDrawNode)
-      }
       if (isNextCoinCide) {
         if (nextPhilNode.angle == 0) {
           nowPhilNode.canDraw = false
@@ -1014,13 +1010,6 @@ export default class PhilTimebar {
       nextPhilNode.y = this.mockGetYByTime(nextPhilNode.year, totalHeight)
       const isPrevCoinCide = this.checkIsCoinCide(prevPhilNode, nowPhilNode)
       const isNextCoinCide = this.checkIsCoinCide(nextPhilNode, nowPhilNode)
-      // if (nowPhilNode.itemName == '公孙龙') {
-      //   console.log(nowPhilNode)
-      //   console.log(prevPhilNode)
-      //   console.log(nextPhilNode)
-      //   console.log(isPrevCoinCide)
-      //   console.log(isNextCoinCide)
-      // }
       if (isNextCoinCide) {
         nowPhilNode.canDraw = false
         let hasNodeList = renderList.filter(item => item.id == nowPhilNode.id)
