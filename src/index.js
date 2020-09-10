@@ -232,11 +232,11 @@ export default class PhilTimebar {
     const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
     const quoteCenterY = y - zeroY
     const quoteHeight = 40
-    const quoteMinY = quoteCenterY - (quoteHeight / 2) - QUOTE_MAX_HEIGHT
-    const quoteMaxY = switchLine ? quoteCenterY + quoteHeight / 2 + 15 : quoteCenterY + quoteHeight / 2
+    const quoteMinY = quoteCenterY - (quoteHeight / 2) - QUOTE_MAX_HEIGHT + this.tabBarHeight
+    const quoteMaxY = switchLine ? quoteCenterY + quoteHeight / 2 + 15 : quoteCenterY + quoteHeight / 2 + this.tabBarHeight
 
 
-    let $quote = $(`<div>${content}</div>`)
+    let $quote = $(`<div></div>`).html(content)
     $quote.addClass('phil-quote')
     $quote.css('left', quoteX)
     if (pageY + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
