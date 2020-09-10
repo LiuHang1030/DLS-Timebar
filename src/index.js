@@ -5,7 +5,7 @@ import Dot from './components/dot'
 import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
-
+import $ from 'jquery'
 
 const SWITCH_LINE_HEIGHT = 15
 
