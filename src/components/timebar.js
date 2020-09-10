@@ -157,7 +157,15 @@ export default class Timebar {
     this.container.appendChild(this.$html[0]);
 
   }
-
+  drawYaxis() {
+    this.ctx.beginPath()
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeStyle = `rgba(151, 151, 151,0.6)`
+    this.ctx.moveTo(this.centerPx, 0)
+    this.ctx.lineTo(this.centerPx, this.totalWidth)
+    this.ctx.stroke()
+    this.ctx.closePath()
+  }
   _resize() {
     this.canvas.width = this.$html.width() * this.ratio;
     this.canvas.height = this.$html.height() * this.ratio;
@@ -174,6 +182,7 @@ export default class Timebar {
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
     this.drawUnit();
+    this.drawYaxis()
     let renderData = {
       totalHeight: this.totalWidth,
       screenStartTime: this.getTimeByPixel(0),
@@ -304,18 +313,20 @@ export default class Timebar {
     }
   }
 
-  drawLine(y, width = 10) {
+  drawLine(y, width = 10, color = `rgb(151, 151, 151)`) {
 
+    this.ctx.save()
     y = Math.floor(y);
 
     let halfWidth = width / 2
     this.ctx.beginPath();
     this.ctx.lineWidth = 1;
-    this.ctx.strokeStyle = '#CAD2D6';
+    this.ctx.strokeStyle = color;
     this.ctx.moveTo(this.centerPx - halfWidth, y);
     this.ctx.lineTo(this.centerPx + halfWidth, y);
     this.ctx.stroke();
     this.ctx.closePath();
+    this.ctx.restore()
   }
 
   drawDisable() {

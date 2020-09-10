@@ -33,7 +33,8 @@ export default class PhilTimebar {
       westRenderList: [],
       eastRenderList: [],
       tab: false,
-      tabIndex: 0,
+      slider: false,
+      tabIndex: 1,
       tabBarHeight: 50,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1,
@@ -41,28 +42,28 @@ export default class PhilTimebar {
       onQuoteClickHandle: () => { }
     }, props)
     this.initial()
-    this.controller = new Controller({
-      $html: this.$html,
-      tab: this.tab,
-      slider: false,
-      onTabClickHandle: (index) => {
-        this.tabIndex = index
-        this.ruler.render()
-        this.clearQuote()
-      },
-      onSliderClickHandle: (index) => {
-        // 改变缩放层级
-        switch (index) {
-          case 1:
+    // this.controller = new Controller({
+    //   $html: this.$html,
+    //   tab: this.tab,
+    //   slider: this.slider,
+    //   onTabClickHandle: (index) => {
+    //     this.tabIndex = index
+    //     this.ruler.render()
+    //     this.clearQuote()
+    //   },
+    //   onSliderClickHandle: (index) => {
+    //     // 改变缩放层级
+    //     switch (index) {
+    //       case 1:
 
-            break;
-          case 2:
-            break;
-          case 3:
-            break;
-        }
-      }
-    })
+    //         break;
+    //       case 2:
+    //         break;
+    //       case 3:
+    //         break;
+    //     }
+    //   }
+    // })
 
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
@@ -219,7 +220,7 @@ export default class PhilTimebar {
     // this.$html.append(this.westQuote)
     // this.$html.append($(document.createElement('p')))
   }
-  showQuote(nowPhilNode, pageY) {
+  showQuote(nowPhilNode, pageY, content) {
     const { y, originType, saying, switchLine } = nowPhilNode
     const QUOTE_MAX_HEIGHT = 150
     const radius = this.CIRCLE_DIAMETER / 2
@@ -232,7 +233,7 @@ export default class PhilTimebar {
     const quoteMaxY = switchLine ? quoteCenterY + quoteHeight / 2 + 15 : quoteCenterY + quoteHeight / 2
 
 
-    let $quote = $(`<div>${saying.title}</div>`)
+    let $quote = $(`<div>${content}</div>`)
     $quote.addClass('phil-quote')
     $quote.css('left', quoteX)
     if (pageY + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
@@ -438,7 +439,7 @@ export default class PhilTimebar {
   }
   drawAvatar(avatarData,) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle } = avatarData
+      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, angle, importance } = avatarData
       if (!window[itemId]) {
         window[itemId] = new Avatar({
           $html: this.$html,
@@ -449,6 +450,7 @@ export default class PhilTimebar {
           philName: itemName,
           born: timeStr,
           angle,
+          importance,
           x,
           y,
           originY,
@@ -463,6 +465,7 @@ export default class PhilTimebar {
         window[itemId].originY = originY
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
+        window[itemId].importance = importance
         // window[itemId].hasShow = true
         window[itemId].draw()
       }
@@ -625,65 +628,69 @@ export default class PhilTimebar {
       this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
       this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
 
-      if ((this.eastWithInData && !this.eastWithInData.length) || this.eastWithInData.every(item => item.canDraw)) {
-        // 如果屏幕内不存在任何东方节点
-        let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
+      if (this.tabIndex == 2) {
+        if ((this.eastWithInData && !this.eastWithInData.length) || this.eastWithInData.every(item => item.canDraw)) {
+          // 如果屏幕内不存在任何东方节点
+          let quoteList = this.findNearestQuote(this.eastBubbles, this.screenEndTime)
 
-        if (quoteList) {
-
-
-          // 如果存在可显示的 quote
-          let $content = $('<div></div>')
-
-          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-          $content.append(title)
-          let desc = quoteList.bubbleDesc
-          $content.append(`<div class="quote-content">${desc}</div>`)
-          this.eastQuote.html($content)
-          let quoteHeight = this.eastQuote.outerHeight()
+          if (quoteList) {
 
 
-          let canShow = this.eastWithInData.every(item => {
-            let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
-            let itemMaxY = item.y + this.CIRCLE_DIAMETER
-            return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
-          })
-          if (canShow) {
-            this.eastQuote.addClass('show')
-          } else {
-            this.eastQuote.removeClass('show')
+            // 如果存在可显示的 quote
+            let $content = $('<div></div>')
+
+            let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+            $content.append(title)
+            let desc = quoteList.bubbleDesc
+            $content.append(`<div class="quote-content">${desc}</div>`)
+            this.eastQuote.html($content)
+            let quoteHeight = this.eastQuote.outerHeight()
+
+
+            let canShow = this.eastWithInData.every(item => {
+              let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
+              let itemMaxY = item.y + this.CIRCLE_DIAMETER
+              return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
+            })
+            if (canShow) {
+              this.eastQuote.addClass('show')
+            } else {
+              this.eastQuote.removeClass('show')
+            }
           }
-        }
 
-      } else {
-        this.eastQuote.removeClass('show')
+        } else {
+          this.eastQuote.removeClass('show')
+        }
       }
-      if ((this.westWithInData && !this.westWithInData.length) || this.westWithInData.every(item => item.canDraw)) {
-        // 如果屏幕内不存在任何西方节点
-        let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
-        if (quoteList) {
-          // 如果存在可显示的 quote
-          let $content = $('<div></div>')
-          let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
-          $content.append(title)
-          let desc = quoteList.bubbleDesc
-          $content.append(`<div class="quote-content">${desc}</div>`)
-          this.westQuote.html($content)
-          let quoteHeight = this.westQuote.outerHeight()
-          let canShow = this.westWithInData.every(item => {
-            let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
-            let itemMaxY = item.y + this.CIRCLE_DIAMETER
-            return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
-          })
-          if (canShow) {
-            this.westQuote.addClass('show')
-          } else {
-            this.westQuote.removeClass('show')
-          }
+      if (this.tabIndex == 0) {
+        if ((this.westWithInData && !this.westWithInData.length) || this.westWithInData.every(item => item.canDraw)) {
+          // 如果屏幕内不存在任何西方节点
+          let quoteList = this.findNearestQuote(this.westBubbles, this.screenEndTime)
+          if (quoteList) {
+            // 如果存在可显示的 quote
+            let $content = $('<div></div>')
+            let title = $(`<div class="quote-title">${quoteList.bubbleTitle}</div>`)
+            $content.append(title)
+            let desc = quoteList.bubbleDesc
+            $content.append(`<div class="quote-content">${desc}</div>`)
+            this.westQuote.html($content)
+            let quoteHeight = this.westQuote.outerHeight()
+            let canShow = this.westWithInData.every(item => {
+              let itemMinY = item.y - this.CIRCLE_DIAMETER / 2
+              let itemMaxY = item.y + this.CIRCLE_DIAMETER
+              return itemMinY > this.quoteTop + quoteHeight && itemMaxY < this.quoteTop
+            })
+            if (canShow) {
+              this.westQuote.addClass('show')
+            } else {
+              this.westQuote.removeClass('show')
+            }
 
+          }
+        } else {
+          this.westQuote.removeClass('show')
         }
-      } else {
-        this.westQuote.removeClass('show')
       }
 
 

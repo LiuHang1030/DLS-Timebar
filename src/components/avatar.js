@@ -7,7 +7,7 @@ export default class Avatar {
       $html: this.$html,
       canvas: null,
       ctx: null,
-      importance: 0,
+      importance: 1,
       originType: 'EAST', // EAST OR WEST
       x: 0,
       y: 0,
@@ -19,8 +19,15 @@ export default class Avatar {
       philName: '',
       born: '',
       size: 25,
-      hasShow: false
+      hasShow: false,
+      numWidth: 3,
+      numHeight: 6,
     }, props)
+    this.importance = parseInt(this.importance)
+    this.outterCircle = document.createElement('img')
+    this.outterCircle.src = '../../static/avatar@2x.png'
+    this.importanceImage = document.createElement('img')
+    this.importanceImage.src = `../../static/${this.importance}@2x.png`
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
@@ -190,7 +197,7 @@ export default class Avatar {
     // }
     this.drawCircle(this.ctx, this.x, this.y)
     this.drawText(this.ctx, this.philName, this.x, this.y + this.size + 20)
-    this.drawText(this.ctx, this.born, this.x, this.y + this.size + 35, true)
+    this.drawText(this.ctx, this.born, this.x, this.y + this.size + 35, true, 9)
     this.drawLine(this.ctx, lineMoveToX, this.y, this.originY)
   }
   createCacheAvatar() {
@@ -210,18 +217,15 @@ export default class Avatar {
   }
 
   drawCircle(ctx, x, y) {
-
+    ctx.save()
     ctx.beginPath()
-
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 0;
     ctx.fillStyle = `rgba(255, 255, 255, ${this.lineData.opacity})`
-    ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
+    // ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
 
-    ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
-    // ctx.drawImage('../../static/avatar@2x.png', this.x, this.y, this.size, this.size)
+    ctx.arc(x, y, this.size - 2, 0, Math.PI * 2, false);
     ctx.fill();
     ctx.stroke();
-
     if (!this.img) {
       var img = document.createElement('img')
       img.src = this.avatarUrl
@@ -233,16 +237,20 @@ export default class Avatar {
       let imgX = x - this.size
       let imgY = y - this.size
       this.drawRadiusImage(ctx, this.img, imgX, imgY, this.size)
-
+      this.ctx.drawImage(this.outterCircle, x - this.size, y - this.size, this.size * 2, this.size * 2)
+      this.ctx.drawImage(this.importanceImage, x - this.numWidth / 2, y + this.size - 7, this.numWidth, this.numHeight)
     }
     ctx.closePath()
-    // this.drawRect(this.ctx, 'I', x, y + this.size - 10)
+    ctx.restore()
+
+
   }
 
-  drawText(ctx, text, x, y, born = false) {
+  drawText(ctx, text, x, y, born = false, fontSize = 12) {
     ctx.save()
     ctx.beginPath()
-    ctx.font = '12px sans-serif';
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.fillStyle = `rgb(255, 255, 255)`
     ctx.strokeStyle = born ? 'rgba(255, 255, 255, 0.1)' : '#fff'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'bottom';
@@ -252,7 +260,6 @@ export default class Avatar {
     ctx.restore()
   }
   drawRadiusImage(ctx, img, x, y, r) {
-    ctx.save()
     ctx.beginPath()
     var d = 2 * r;
     var cx = x + r;
@@ -261,21 +268,17 @@ export default class Avatar {
     ctx.clip();
     ctx.drawImage(img, x, y, d, d);
     ctx.closePath()
-    ctx.restore()
   }
   drawRect(ctx, text, x, y, w = 40, h = 7) {
-    ctx.save()
     ctx.beginPath()
-    ctx.fillStyle = '#a0365b'
-    ctx.fillRect(x - w / 2, y, w, h);
     ctx.strokeStyle = '#FFFFFF'
-    ctx.fillText(text, x - w / 2, y);
+    ctx.fillText(text, x, y + 12);
     ctx.stroke()
     ctx.fill()
     ctx.closePath()
-    ctx.restore()
   }
   drawLine(x, y, originY, animate = true) {
+    this.ctx.save()
     this.ctx.beginPath()
     var gradient = this.ctx.createLinearGradient(0, 0, 200, 0);
     gradient.addColorStop(0, "#000000");
@@ -310,6 +313,7 @@ export default class Avatar {
     this.ctx.strokeStyle = gradient
     this.ctx.stroke()
     this.ctx.closePath()
+    this.ctx.restore()
 
 
 

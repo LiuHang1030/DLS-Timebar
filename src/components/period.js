@@ -29,7 +29,7 @@ export default class Period {
     this.ctx.moveTo(x, y)
     this.ctx.lineTo(x2, y)
     this.ctx.lineWidth = 1
-    this.ctx.strokeStyle = '#FFF'
+    this.ctx.strokeStyle = '#4DECC0'
     this.ctx.stroke()
     this.ctx.closePath()
   }

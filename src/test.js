@@ -10,13 +10,12 @@ const philTimeBar = new PhilTimebar({
   philData,
   periodData,
   bubbles,
-  tab: false,
   onNodeClickHandle: (node) => {
 
   },
   onQuoteClickHandle: (e, quote) => {
     const { pageY } = e
-    philTimeBar.showQuote(quote, pageY)
+    philTimeBar.showQuote(quote, pageY, 'xxx')
   }
 })
 // Service.getPhilData().then((resp) => {
