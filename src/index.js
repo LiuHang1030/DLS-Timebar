@@ -37,7 +37,7 @@ export default class PhilTimebar {
       tab: false,
       slider: false,
       tabIndex: 1,
-      tabBarHeight: 50,
+      tabBarHeight: 224,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1,
       onNodeClickHandle: () => { },
