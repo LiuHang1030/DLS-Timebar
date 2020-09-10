@@ -54,7 +54,6 @@ export default class Avatar {
         opacity: 0
       }
     }
-    this.draw()
   }
 
   hide() {
@@ -109,7 +108,6 @@ export default class Avatar {
         })
       }
     }
-
     // const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
     // this.drawCircle(this.x, this.y)
     // this.drawText(this.philName, this.x, this.y + this.size + 20)
@@ -134,6 +132,7 @@ export default class Avatar {
             onComplete: (tn) => {
               this.hasShow = true
               this.drawing = false
+
             }
           })
         } else {
@@ -145,6 +144,7 @@ export default class Avatar {
             onComplete: (tn) => {
               this.hasShow = true
               this.drawing = false
+
             }
           })
         }
@@ -170,10 +170,12 @@ export default class Avatar {
             onComplete: (tn) => {
               this.hasShow = true
               this.drawing = false
+
             }
           })
         }
       }
+
     } else {
       this.lineData.y = this.y
       this.lineData.originY = this.originY
@@ -208,14 +210,17 @@ export default class Avatar {
   }
 
   drawCircle(ctx, x, y) {
+
     ctx.beginPath()
+
     ctx.lineWidth = 3;
     ctx.fillStyle = `rgba(255, 255, 255, ${this.lineData.opacity})`
     ctx.strokeStyle = `rgba(160,54,91,${this.lineData.opacity})`
+
     ctx.arc(x, y, this.size, 0, Math.PI * 2, false);
+    // ctx.drawImage('../../static/avatar@2x.png', this.x, this.y, this.size, this.size)
     ctx.fill();
     ctx.stroke();
-
 
     if (!this.img) {
       var img = document.createElement('img')
@@ -228,11 +233,10 @@ export default class Avatar {
       let imgX = x - this.size
       let imgY = y - this.size
       this.drawRadiusImage(ctx, this.img, imgX, imgY, this.size)
+
     }
-
-    // this.drawRect('I', x, y + 10)
     ctx.closePath()
-
+    // this.drawRect(this.ctx, 'I', x, y + this.size - 10)
   }
 
   drawText(ctx, text, x, y, born = false) {
@@ -259,7 +263,8 @@ export default class Avatar {
     ctx.closePath()
     ctx.restore()
   }
-  drawRect(ctx, text, x, y, w = 50, h = 10) {
+  drawRect(ctx, text, x, y, w = 40, h = 7) {
+    ctx.save()
     ctx.beginPath()
     ctx.fillStyle = '#a0365b'
     ctx.fillRect(x - w / 2, y, w, h);
@@ -268,6 +273,7 @@ export default class Avatar {
     ctx.stroke()
     ctx.fill()
     ctx.closePath()
+    ctx.restore()
   }
   drawLine(x, y, originY, animate = true) {
     this.ctx.beginPath()

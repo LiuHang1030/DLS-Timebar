@@ -15,7 +15,10 @@ export default class dot {
 
     this.centerPx = this.$html.width() / 2
     this.x = this.centerPx
-    this.alpha = (0.7 * this.nowZoom + 0.3 * this.zoom - 1.7) / (this.zoom - 1.7)
+    if (!this.zoom) {
+      this.zoom = 0.003940110323089046
+    }
+    this.alpha = (0.7 * this.nowZoom + 0.3 * this.zoom - 2.5) / (this.zoom - 2.5)
     this.createDot()
 
   }
