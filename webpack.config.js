@@ -7,7 +7,7 @@ const port = 8080
 module.exports = {
   mode: 'development',
   entry: {
-    app: './src/index.js'
+    app: './test/test.js'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

@@ -14,6 +14,7 @@ const SWITCH_LINE_HEIGHT = 15
 export default class PhilTimebar {
   constructor(props) {
     Object.assign(this, {
+      $container: document.body,
       periodData: [], // 哲学家数据
       philData: [], // 分期数据
       nowPhilData: [], // 现在可显示的哲学家数据
@@ -80,6 +81,7 @@ export default class PhilTimebar {
 
     this.timerbar = new Timebar({
       $html: this.$html,
+      $container: this.$container,
       canvas: this.canvas,
       ctx: this.ctx,
       onClick: (e) => {
