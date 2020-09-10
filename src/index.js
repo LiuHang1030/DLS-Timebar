@@ -248,10 +248,10 @@ export default class PhilTimebar {
     }
     $quote.css('height', QUOTE_MAX_HEIGHT)
     this.clearQuote()
-    this.$html.append($quote)
+    $('body').append($quote)
   }
   clearQuote() {
-    this.$html.find($('.phil-quote')).remove()
+    $('body').find($('.phil-quote')).remove()
   }
   createMockData() {
     let mockData = []
