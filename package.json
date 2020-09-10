@@ -1,6 +1,6 @@
 {
   "name": "@portal/dls-timebar",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "时间轴",
   "main": "./dist/main.js",
   "scripts": {
