@@ -6,6 +6,7 @@ import Quote from './components/quote'
 import Controller from './components/controller'
 import Period from './components/period'
 import $ from 'jquery'
+import _ from 'lodash'
 
 const SWITCH_LINE_HEIGHT = 15
 
