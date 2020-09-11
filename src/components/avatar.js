@@ -32,17 +32,17 @@ export default class Avatar {
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
-    this.outterCircle.src = avatarAssets.avatar
+    this.outterCircle.src = this.avatarAssets.avatar
     this.importanceImage = document.createElement('img')
     switch (this.importance) {
       case 1:
-        this.importanceImage.src = avatarAssets.importantce1
+        this.importanceImage.src = this.avatarAssets.importantce1
         break;
       case 2:
-        this.importanceImage.src = avatarAssets.importantce2
+        this.importanceImage.src = this.avatarAssets.importantce2
         break;
       case 3:
-        this.importanceImage.src = avatarAssets.importantce3
+        this.importanceImage.src = this.avatarAssets.importantce3
         break;
       default:
         break;
