@@ -36,7 +36,7 @@ export default class PhilTimebar {
       eastRenderList: [],
       tab: false,
       slider: false,
-      tabIndex: 2,
+      tabIndex: 1,
       tabBarHeight: 224,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1,
