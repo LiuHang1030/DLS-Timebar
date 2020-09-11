@@ -73,7 +73,7 @@ export default class PhilTimebar {
       onTimebarScroll: (deltaY, translateY) => {
         this.onTimebarScroll(deltaY, translateY)
         if (translateY == 0) {
-          this.tabBarHeight = 50
+          this.tabBarHeight = 117
         } else {
           this.tabBarHeight = 224
         }
