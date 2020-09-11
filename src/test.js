@@ -10,6 +10,10 @@ const philTimeBar = new PhilTimebar({
   philData,
   periodData,
   bubbles,
+  avatarAssets: {
+    avatar: 'static/avatar@2x.png',
+    importantNum: ['static/1@2x.png', 'static/2@2x.png', 'static/3@2x.png']
+  },
   onNodeClickHandle: (node) => {
 
   },

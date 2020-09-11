@@ -23,13 +23,14 @@ export default class Avatar {
       hasShow: false,
       numWidth: 5,
       numHeight: 8,
+      avatarAssets: {}
 
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
-    this.outterCircle.src = '/static/avatar@2x.png'
+    this.outterCircle.src = this.avatarAssets.avatar
     this.importanceImage = document.createElement('img')
-    this.importanceImage.src = `/static/${this.importance}@2x.png`
+    this.importanceImage.src = this.avatarAssets.importantNum[this.importance]
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
