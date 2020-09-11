@@ -21,7 +21,7 @@ export default class Timebar {
       ctx: undefined,
       tickTime: +new Date,
       tick: 50,
-      marginTop: 0,
+      marginTop: 100,
       container: document.body,
       minYear: -800,
       maxYear: new Date().getFullYear(),

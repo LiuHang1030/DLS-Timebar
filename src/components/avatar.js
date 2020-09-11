@@ -24,9 +24,9 @@ export default class Avatar {
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
-    // this.outterCircle.src = require('static/avatar@2x.png')
+    this.outterCircle.src = 'static/avatar@2x.png'
     this.importanceImage = document.createElement('img')
-    // this.importanceImage.src = require(`static/${this.importance}@2x.png`)
+    this.importanceImage.src = `static/${this.importance}@2x.png`
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
