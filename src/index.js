@@ -39,7 +39,6 @@ export default class PhilTimebar {
       tabIndex: 1,
       tabBarHeight: 224,
       quoteWidth: 120,
-      avatarAssets: {},
       quoteTop: document.body.clientHeight * 0.1,
       onNodeClickHandle: () => { },
       onQuoteClickHandle: () => { },
@@ -445,7 +444,6 @@ export default class PhilTimebar {
           born: timeStr,
           angle,
           importance,
-          avatarAssets: this.avatarAssets,
           x,
           y,
           originY,
@@ -461,7 +459,6 @@ export default class PhilTimebar {
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
         window[itemId].importance = importance
-        window[itemId].avatarAssets = this.avatarAssets
         window[itemId].draw()
       }
     }

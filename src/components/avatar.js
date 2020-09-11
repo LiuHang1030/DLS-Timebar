@@ -23,30 +23,13 @@ export default class Avatar {
       hasShow: false,
       numWidth: 5,
       numHeight: 8,
-      avatarAssets: {
-        avatar: '',
-        importantce1: '',
-        importantce2: '',
-        importantce3: ''
-      }
+
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
-    this.outterCircle.src = this.avatarAssets.avatar
+    this.outterCircle.src = require('../../static/avatar@2x.png')
     this.importanceImage = document.createElement('img')
-    switch (this.importance) {
-      case 1:
-        this.importanceImage.src = this.avatarAssets.importantce1
-        break;
-      case 2:
-        this.importanceImage.src = this.avatarAssets.importantce2
-        break;
-      case 3:
-        this.importanceImage.src = this.avatarAssets.importantce3
-        break;
-      default:
-        break;
-    }
+    this.importanceImage.src = require(`../../static/${this.importance}@2x.png`)
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
