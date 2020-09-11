@@ -20,6 +20,7 @@ export default class Quote {
     }, props)
     this.x = this.originType == 'EAST' ? 20 : this.centerPx + 40
     this.trasnlateY = this.y - (this.height / 2)
+    this.saying.title = this.saying.title + ' > '
     this.arrText = this.saying.title.split('');
     this.arrWidth = this.arrText.map((letter) => {
       return this.ctx.measureText(letter).width;

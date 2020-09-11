@@ -71,6 +71,11 @@ export default class PhilTimebar {
       },
       onTimebarScroll: (deltaY, translateY) => {
         this.onTimebarScroll(deltaY, translateY)
+        if (translateY == 0) {
+          this.tabBarHeight = 50
+        } else {
+          this.tabBarHeight = 224
+        }
       },
       onRender: (e) => {
         const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
