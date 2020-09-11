@@ -76,7 +76,7 @@ export default class PhilTimebar {
         if (translateY == 0) {
           this.tabBarHeight = 224
         } else {
-          this.tabBarHeight = 50
+          this.tabBarHeight = 117
         }
       },
       onRender: (e) => {
