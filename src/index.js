@@ -445,6 +445,7 @@ export default class PhilTimebar {
           born: timeStr,
           angle,
           importance,
+          avatarAssets: this.avatarAssets,
           x,
           y,
           originY,
@@ -460,7 +461,7 @@ export default class PhilTimebar {
         window[itemId].angle = angle
         window[itemId].avatarUrl = avatarUrl
         window[itemId].importance = importance
-        // window[itemId].hasShow = true
+        window[itemId].avatarAssets = this.avatarAssets
         window[itemId].draw()
       }
     }
