@@ -14,6 +14,7 @@ const SWITCH_LINE_HEIGHT = 15
 export default class PhilTimebar {
   constructor(props) {
     Object.assign(this, {
+      container: '',
       $container: document.body,
       periodData: [], // 哲学家数据
       philData: [], // 分期数据
@@ -360,7 +361,9 @@ export default class PhilTimebar {
     return parseInt(percent * totalHeight);
   }
   initial() {
-    const { canvas, ctx, $html } = new Canvas()
+    const { canvas, ctx, $html } = new Canvas({
+      container: this.container
+    })
     this.canvas = canvas
     this.ctx = ctx
     this.$html = $html
