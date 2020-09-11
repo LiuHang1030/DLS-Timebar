@@ -43,9 +43,6 @@ export default class PhilTimebar {
       onNodeClickHandle: () => { },
       onQuoteClickHandle: () => { },
       onRender: () => { },
-      onScroll: () => {
-
-      }
     }, props)
     this.initial()
     this.createQuote()
@@ -66,14 +63,10 @@ export default class PhilTimebar {
       canvas: this.canvas,
       ctx: this.ctx,
       marginTop: this.tabBarHeight,
-      avatarAssets: this.avatarAssets,
       onClick: (e) => {
         this.clearQuote()
         this.onClickHandle(e)
 
-      },
-      onScroll(deltaY) {
-        this.onScroll(deltaY)
       },
       onRender: (e) => {
         const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
