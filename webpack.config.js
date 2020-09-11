@@ -12,7 +12,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
-    libraryTarget: 'umd'
+    libraryTarget: 'umd',
   },
   module: {
     rules: [{
@@ -40,7 +40,8 @@ module.exports = {
       loader: 'url-loader',
       options: {
         limit: 10000,
-        name: path.resolve(__dirname, 'dist/img/[name].[hash:7].[ext]')
+        name: path.resolve(__dirname, 'dist/img/[name].[hash:7].[ext]'),
+        esModule: false
       }
     }
     ]

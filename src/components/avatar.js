@@ -1,5 +1,7 @@
 import { TweenLite } from "gsap";
 
+
+
 export default class Avatar {
   constructor(props) {
     Object.assign(this, {
@@ -21,12 +23,30 @@ export default class Avatar {
       hasShow: false,
       numWidth: 5,
       numHeight: 8,
+      avatarAssets: {
+        avatar: '',
+        importantce1: '',
+        importantce2: '',
+        importantce3: ''
+      }
     }, props)
     this.importance = parseInt(this.importance)
     this.outterCircle = document.createElement('img')
-    this.outterCircle.src = 'static/avatar@2x.png'
+    this.outterCircle.src = avatarAssets.avatar
     this.importanceImage = document.createElement('img')
-    this.importanceImage.src = `static/${this.importance}@2x.png`
+    switch (this.importance) {
+      case 1:
+        this.importanceImage.src = avatarAssets.importantce1
+        break;
+      case 2:
+        this.importanceImage.src = avatarAssets.importantce2
+        break;
+      case 3:
+        this.importanceImage.src = avatarAssets.importantce3
+        break;
+      default:
+        break;
+    }
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
