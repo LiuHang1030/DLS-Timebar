@@ -21,7 +21,7 @@ export default class Timebar {
       ctx: undefined,
       tickTime: +new Date,
       tick: 50,
-      marginTop: 100,
+      marginTop: 0,
       container: document.body,
       minYear: -800,
       maxYear: new Date().getFullYear(),
@@ -83,6 +83,7 @@ export default class Timebar {
       onClick() { },
       onRender() { },
       onAnimateFinish() { },
+      onScroll() { },
       store: {
         scale: 1
       },
@@ -992,6 +993,7 @@ export default class Timebar {
         /**
          * 超出边界的处理
          */
+        this.onScroll(delatY)
         this._fixOverFlowTranslate(newY)
         this.updateBufferYears();
         this.tickerStart()

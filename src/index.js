@@ -36,37 +36,16 @@ export default class PhilTimebar {
       eastRenderList: [],
       tab: false,
       slider: false,
-      tabIndex: 1,
+      tabIndex: 2,
       tabBarHeight: 224,
       quoteWidth: 120,
       quoteTop: document.body.clientHeight * 0.1,
       onNodeClickHandle: () => { },
-      onQuoteClickHandle: () => { }
+      onQuoteClickHandle: () => { },
+      onRender: () => { },
+      onScroll: () => { }
     }, props)
     this.initial()
-    // this.controller = new Controller({
-    //   $html: this.$html,
-    //   tab: this.tab,
-    //   slider: this.slider,
-    //   onTabClickHandle: (index) => {
-    //     this.tabIndex = index
-    //     this.ruler.render()
-    //     this.clearQuote()
-    //   },
-    //   onSliderClickHandle: (index) => {
-    //     // 改变缩放层级
-    //     switch (index) {
-    //       case 1:
-
-    //         break;
-    //       case 2:
-    //         break;
-    //       case 3:
-    //         break;
-    //     }
-    //   }
-    // })
-
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
     this.westBubbles = this.bubbles.filter(item => item.originType == 'WEST')
@@ -84,10 +63,14 @@ export default class PhilTimebar {
       $container: this.$container,
       canvas: this.canvas,
       ctx: this.ctx,
+      marginTop: this.tabBarHeight,
       onClick: (e) => {
         this.clearQuote()
         this.onClickHandle(e)
 
+      },
+      onScroll: (down) => {
+        this.onScroll(down)
       },
       onRender: (e) => {
         const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
@@ -117,6 +100,10 @@ export default class PhilTimebar {
     this.ctx.closePath()
     this.ctx.restore()
   }
+  switchData(index) {
+    this.tabIndex = index
+    this.timerbar.tickerStart()
+  }
   onClickHandle(e) {
 
     const radius = this.CIRCLE_DIAMETER / 2
@@ -128,7 +115,6 @@ export default class PhilTimebar {
 
 
     let nowScreenRenderList = []
-
 
     if (this.tabIndex == 0) {
       let westRenderList = this['totalHeight' + this.totalHeight].westRenderList.filter((item) => {
@@ -149,17 +135,17 @@ export default class PhilTimebar {
       })
       nowScreenRenderList = eastRenderList.concat(westRenderList)
     }
-
     let hasClickNodeList = nowScreenRenderList.filter((item) => {
       const { originType, switchLine } = item
 
 
       const x = item.x
-      const y = item.y + this.tabBarHeight - zeroY
+      const y = item.y - zeroY + this.tabBarHeight
 
 
 
       if (this.tabIndex == 0 || this.tabIndex == 2) {
+
         const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
         const quoteY = item.y + this.tabBarHeight - zeroY
         const quoteHeight = 40
@@ -167,8 +153,8 @@ export default class PhilTimebar {
         const quoteMinX = quoteX
         const quoteMaxX = quoteX + this.quoteWidth
         // switchLine 为 true 需要扩大范围
-        const quoteMinY = quoteY - (quoteHeight / 2) - this.tabBarHeight
-        const quoteMaxY = switchLine ? quoteY + this.tabBarHeight - (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY - this.tabBarHeight + quoteHeight / 2
+        const quoteMinY = quoteY - (quoteHeight / 2)
+        const quoteMaxY = switchLine ? quoteY + (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY + quoteHeight / 2
 
         const xWithInQuote = quoteMinX <= pageX && pageX <= quoteMaxX
         const yWithInQuote = quoteMinY <= pageY && pageY <= quoteMaxY
@@ -202,12 +188,10 @@ export default class PhilTimebar {
     })
     if (hasClickNodeList && hasClickNodeList.length) {
       if (clickQuote) {
-        // this.showQuote(hasClickNodeList[0], pageY)
         this.onQuoteClickHandle(e, hasClickNodeList[0])
       } else {
         // 弹出跳转 APP 登录框
         this.onNodeClickHandle(hasClickNodeList[0])
-
       }
     }
 
@@ -226,20 +210,21 @@ export default class PhilTimebar {
   showQuote(nowPhilNode, pageY, content) {
     const { y, originType, saying, switchLine } = nowPhilNode
     const QUOTE_MAX_HEIGHT = 150
-    const radius = this.CIRCLE_DIAMETER / 2
     const WINDOW_HEIGHT = this.$html.height()
+
     const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
     const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
-    const quoteCenterY = y - zeroY
+    const quoteCenterY = y + this.tabBarHeight - zeroY
     const quoteHeight = 40
-    const quoteMinY = quoteCenterY - (quoteHeight / 2) - QUOTE_MAX_HEIGHT + this.tabBarHeight
-    const quoteMaxY = switchLine ? quoteCenterY + quoteHeight / 2 + 15 : quoteCenterY + quoteHeight / 2 + this.tabBarHeight
+    const quoteMinY = quoteCenterY - QUOTE_MAX_HEIGHT - (quoteHeight / 2)
+    const quoteMaxY = switchLine ? quoteCenterY + (quoteHeight / 2) + 15 : quoteCenterY + (quoteHeight / 2)
 
 
     let $quote = $(`<div></div>`).html(content)
     $quote.addClass('phil-quote')
     $quote.css('left', quoteX)
-    if (pageY + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
+    if (quoteCenterY + QUOTE_MAX_HEIGHT >= WINDOW_HEIGHT - 50) {
+      // 大于向上显示
       $quote.css('top', quoteMinY)
       $quote.css('borderBottom', 'none')
     } else {
