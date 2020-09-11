@@ -14,6 +14,9 @@ const philTimeBar = new PhilTimebar({
     avatar: 'static/avatar@2x.png',
     importantNum: ['static/1@2x.png', 'static/2@2x.png', 'static/3@2x.png']
   },
+  quoteAssets: {
+    arrow: 'static/unfold@2x.png'
+  },
   onTimebarScroll: (deltaY, translateY) => {
     console.log(translateY)
   },

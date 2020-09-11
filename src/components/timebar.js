@@ -120,6 +120,7 @@ export default class Timebar {
     // this.render()
     this.tickerStart()
     this.bind();
+
   }
 
   tickerStart() {
@@ -526,8 +527,8 @@ export default class Timebar {
       newUnitTime,
       newUnitWidth
     } = timeMath.calcUnitBySelectedOffset(this, startTime, endTime);
-    // console.log(newUnitTime)
-    // console.log(newUnitWidth)
+    console.log(newUnitTime)
+    console.log(newUnitWidth)
     this._zoomToSelectedOffset(startTime, endTime, newUnitTime, newUnitWidth, animate, cb)
 
 
@@ -579,6 +580,7 @@ export default class Timebar {
 
     let targetCenterTime = startTime + (endTime - startTime) / 2;
     let currentCenterTime = this.getTimeByPixel(this.centerHeight);
+    console.log(currentCenterTime)
     let centerTimeDelta = targetCenterTime - currentCenterTime;
     TweenLite.to(this, animate, {
       ease: Power0.easeNone,

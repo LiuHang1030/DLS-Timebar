@@ -3,7 +3,7 @@ import Timebar from './components/timebar'
 import Avatar from './components/avatar'
 import Dot from './components/dot'
 import Quote from './components/quote'
-import Controller from './components/controller'
+// import Controller from './components/controller'
 import Period from './components/period'
 import $ from 'jquery'
 import _ from 'lodash'
@@ -36,10 +36,11 @@ export default class PhilTimebar {
       eastRenderList: [],
       tab: false,
       slider: false,
-      tabIndex: 1,
+      tabIndex: 0,
       tabBarHeight: 224,
       quoteWidth: 120,
       avatarAssets: {},
+      quoteAssets: {},
       quoteTop: document.body.clientHeight * 0.1,
       onNodeClickHandle: () => { },
       onQuoteClickHandle: () => { },
@@ -222,7 +223,7 @@ export default class PhilTimebar {
     const quoteCenterY = y + this.tabBarHeight - zeroY
     const quoteHeight = 40
     const quoteMinY = quoteCenterY - QUOTE_MAX_HEIGHT - (quoteHeight / 2)
-    const quoteMaxY = switchLine ? quoteCenterY + (quoteHeight / 2) + 15 : quoteCenterY + (quoteHeight / 2)
+    const quoteMaxY = switchLine ? quoteCenterY + (quoteHeight / 2) + 15 : quoteCenterY + (quoteHeight / 2) - 3
 
 
     let $quote = $(`<div></div>`).html(content)
@@ -705,7 +706,8 @@ export default class PhilTimebar {
       originType,
       y,
       saying,
-      centerPx: this.centerPx
+      centerPx: this.centerPx,
+      quoteAssets: this.quoteAssets
     })
     nowPhilNode.switchLine = quote.switchLine
   }

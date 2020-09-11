@@ -13,15 +13,15 @@ export default class Quote {
       angle: 0,
       radius: 50,
       originType: 'EAST',
-      innerPaddingLeft: 5,
+      innerPaddingLeft: 10,
       innerPaddingTop: 5,
       outterPadding: 20,
-      saying: {}
+      saying: {},
+      quoteAssets: {}
     }, props)
     this.x = this.originType == 'EAST' ? 20 : this.centerPx + 40
     this.trasnlateY = this.y - (this.height / 2)
-    this.saying.title = this.saying.title + ' > '
-    this.arrText = this.saying.title.split('');
+    this.arrText = this.saying.title.split('')
     this.arrWidth = this.arrText.map((letter) => {
       return this.ctx.measureText(letter).width;
     });
@@ -31,6 +31,9 @@ export default class Quote {
   drawPhilQuote() {
     this.drawText()
     this.drawRoundedRect(this.ctx, this.x, this.trasnlateY, this.width, !this.switchLine ? this.height : this.height + 15, 4)
+    let arrow = document.createElement('img')
+    arrow.src = this.quoteAssets.arrow
+    this.ctx.drawImage(arrow, this.x + this.width - 15, this.y - 5, 8, 5)
   }
   drawRoundedRect(ctx, x, y, width, height, radius, type) {
     ctx.beginPath();
