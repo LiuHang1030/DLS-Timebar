@@ -65,7 +65,7 @@ export default class PhilTimebar {
       $container: this.$container,
       canvas: this.canvas,
       ctx: this.ctx,
-      marginTop: this.tabBarHeight,
+      // marginTop: this.tabBarHeight,
       onClick: (e) => {
         this.clearQuote()
         this.onClickHandle(e)
@@ -73,9 +73,9 @@ export default class PhilTimebar {
       onTimebarScroll: (deltaY, translateY) => {
         this.onTimebarScroll(deltaY, translateY)
         if (translateY == 0) {
-          this.tabBarHeight = 117
-        } else {
           this.tabBarHeight = 224
+        } else {
+          this.tabBarHeight = 50
         }
       },
       onRender: (e) => {
@@ -141,6 +141,7 @@ export default class PhilTimebar {
       })
       nowScreenRenderList = eastRenderList.concat(westRenderList)
     }
+    console.log(this.tabBarHeight)
     let hasClickNodeList = nowScreenRenderList.filter((item) => {
       const { originType, switchLine } = item
 

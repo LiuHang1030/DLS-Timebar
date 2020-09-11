@@ -3,7 +3,7 @@ import $ from 'jquery'
 export default class View {
   constructor(props) {
     Object.assign(this, {
-      container: '#timebar',
+      container: 'body',
       width: $(window).width(),
       height: $(window).height()
     }, props)
