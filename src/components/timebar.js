@@ -83,6 +83,7 @@ export default class Timebar {
       onClick() { },
       onRender() { },
       onAnimateFinish() { },
+      onTimebarScroll() { },
       store: {
         scale: 1
       },
@@ -975,6 +976,7 @@ export default class Timebar {
       } else {
         this._touchZoom(this.touchZoomSpeed);
       }
+
       this.store.scale = zoom;
 
     } else {
@@ -989,6 +991,7 @@ export default class Timebar {
 
         let newY = this.downTranslate.y + delatY;
 
+        this.onTimebarScroll(delatY, this.translate.y)
         /**
          * 超出边界的处理
          */

@@ -30,7 +30,7 @@ export default class Avatar {
     this.outterCircle = document.createElement('img')
     this.outterCircle.src = this.avatarAssets.avatar
     this.importanceImage = document.createElement('img')
-    this.importanceImage.src = this.avatarAssets.importantNum[this.importance]
+    this.importanceImage.src = this.avatarAssets.importantNum[this.importance - 1]
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0

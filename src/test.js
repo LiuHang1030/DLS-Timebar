@@ -14,6 +14,9 @@ const philTimeBar = new PhilTimebar({
     avatar: 'static/avatar@2x.png',
     importantNum: ['static/1@2x.png', 'static/2@2x.png', 'static/3@2x.png']
   },
+  onTimebarScroll: (deltaY, translateY) => {
+    console.log(translateY)
+  },
   onNodeClickHandle: (node) => {
 
   },
@@ -22,6 +25,7 @@ const philTimeBar = new PhilTimebar({
     philTimeBar.showQuote(quote, pageY, '12312312312')
   }
 })
+
 // Service.getPhilData().then((resp) => {
 //   if (resp.code == 200) {
 //     const { phils } = resp.data
