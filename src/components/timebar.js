@@ -84,6 +84,7 @@ export default class Timebar {
       onRender() { },
       onAnimateFinish() { },
       onTimebarScroll() { },
+      onZoom() { },
       store: {
         scale: 1
       },
@@ -460,7 +461,17 @@ export default class Timebar {
       end
     };
   }
+  translateYTo(y) {
+    let newY = -y + 100
+    TweenLite.to(this.translate, 0.5, {
+      y: newY,
+      onUpdateParams: ['{ self }'],
+      onUpdate: (tn) => {
+        this.updateBufferYears();
 
+      }
+    })
+  }
   /**
    * 
    * @param {*} time 
@@ -688,6 +699,15 @@ export default class Timebar {
 
     // _zoom 方法中不再执行 render函数
     this.tickerStart()
+    let renderData = {
+      totalHeight: this.totalWidth,
+      screenStartTime: this.getTimeByPixel(0),
+      screenEndTime: this.getTimeByPixel(this.$html.height()),
+      unitTime: this.unitTime,
+      ruler: this,
+      bufferYears: this.bufferYears
+    }
+    this.onZoom(renderData)
     /**
      * 触发外部事件
      */
@@ -810,7 +830,15 @@ export default class Timebar {
     } else {
       this._zoom(this.zoomSpeed);
     }
-
+    let renderData = {
+      totalHeight: this.totalWidth,
+      screenStartTime: this.getTimeByPixel(0),
+      screenEndTime: this.getTimeByPixel(this.$html.height()),
+      unitTime: this.unitTime,
+      ruler: this,
+      bufferYears: this.bufferYears
+    }
+    this.onZoom(renderData)
   }
 
 

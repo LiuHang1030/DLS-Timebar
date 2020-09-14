@@ -18,7 +18,9 @@ const philTimeBar = new PhilTimebar({
     arrow: 'static/unfold@2x.png'
   },
   onTimebarScroll: (deltaY, translateY) => {
-    console.log(translateY)
+  },
+  watchSilderChange: (e) => {
+    console.log(e)
   },
   onNodeClickHandle: (node) => {
 

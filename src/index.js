@@ -14,7 +14,7 @@ const SWITCH_LINE_HEIGHT = 15
 export default class PhilTimebar {
   constructor(props) {
     Object.assign(this, {
-      container: '',
+      container: 'body',
       $container: document.body,
       periodData: [], // 哲学家数据
       philData: [], // 分期数据
@@ -37,7 +37,7 @@ export default class PhilTimebar {
       eastRenderList: [],
       tab: false,
       slider: false,
-      tabIndex: 0,
+      tabIndex: 1,
       tabBarHeight: 224,
       quoteWidth: 120,
       avatarAssets: {},
@@ -46,7 +46,8 @@ export default class PhilTimebar {
       onNodeClickHandle: () => { },
       onQuoteClickHandle: () => { },
       onRender: () => { },
-      onTimebarScroll: () => { }
+      onTimebarScroll: () => { },
+      watchSilderChange: () => { },
     }, props)
     this.initial()
     this.createQuote()
@@ -79,6 +80,27 @@ export default class PhilTimebar {
           this.tabBarHeight = 117
         }
       },
+      onZoom: (e) => {
+        const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
+        let nowZoom = (screenEndTime - screenStartTime) / window.innerHeight
+
+        let level1CanDraw = this.getLevelData(1.1).filter((item) => item.canDraw)
+        let level2CanDraw = this.getLevelData(2).filter((item) => item.canDraw).sort((m, n) => m.zoom - n.zoom)
+        let level3CanDraw = this.getLevelData(3).filter((item) => item.canDraw)
+
+
+
+        if ((level1CanDraw && level1CanDraw.length) && !level2CanDraw.length) {
+          this.watchSilderChange(1)
+        }
+        if (level2CanDraw && level2CanDraw.length) {
+          if (totalHeight > 40000) {
+            this.watchSilderChange(3)
+          } else {
+            this.watchSilderChange(2)
+          }
+        }
+      },
       onRender: (e) => {
         const { ruler, screenStartTime, screenEndTime, totalHeight, bufferYears } = e
         this.screenStartTime = screenStartTime
@@ -93,7 +115,6 @@ export default class PhilTimebar {
 
       }
     })
-
   }
   drawRadiusImage(img, x, y, r) {
     this.ctx.save()
@@ -110,6 +131,33 @@ export default class PhilTimebar {
   switchData(index) {
     this.tabIndex = index
     this.timerbar.tickerStart()
+  }
+  switchLevelData(level, originType) {
+    if (level == 1) {
+      if (originType) {
+        let topNode = this.getLevelData(1.1, originType)[0]
+        let nodeY = this.ruler.getYbyTime(topNode.year)
+        this.ruler.translateYTo(nodeY)
+      } else {
+
+        let topNode = this.getLevelData(1.1)[0]
+        let nodeY = this.ruler.getYbyTime(topNode.year)
+        this.ruler.translateYTo(nodeY)
+      }
+    } else if (level == 2) {
+      if (originType) {
+        let topNode = this.getLevelData(2, originType)[0]
+        let nodeY = this.ruler.getYbyTime(topNode.year)
+        this.ruler.translateYTo(nodeY)
+      } else {
+
+        let topNode = this.getLevelData(2)[0]
+        let nodeY = this.ruler.getYbyTime(topNode.year)
+        this.ruler.translateYTo(nodeY)
+      }
+    } else if (level == 3) {
+
+    }
   }
   onClickHandle(e) {
 
@@ -272,6 +320,8 @@ export default class PhilTimebar {
     let westLevel2Data = this.getLevelData(1.2, 'WEST')
     let eastLevel3Data = this.getLevelData(2, 'EAST')
     let westLevel3Data = this.getLevelData(2, 'WEST')
+    let eastLevel4Data = this.getLevelData(3, 'EAST')
+    let westLevel4Data = this.getLevelData(3, 'WEST')
 
     let eastRenderList = []
     let westRenderList = []
@@ -288,6 +338,8 @@ export default class PhilTimebar {
         const eastLevel3Finished = eastLevel3Data.every(item => item.zoom)
         const westLevel1Finished = westLevel1Data.every(item => item.zoom)
         const westLevel3Finished = westLevel3Data.every(item => item.zoom)
+        // const eastLevel4Finished = eastLevel4Data.every(item => item.zoom)
+        // const westLevel4Finished = westLevel4Data.every(item => item.zoom)
         // const level2Finished = level2Data.every(item => item.zoom)
         // const level3Finished = level3Data.every(item => item.zoom)
         // const level4Finished = level4Data.every(item => item.zoom)
@@ -314,11 +366,6 @@ export default class PhilTimebar {
 
       }
     }
-
-    console.log(eastLevel1Data)
-    console.log(westLevel1Data.filter((item) => { return !item.zoom }))
-    console.log(eastLevel3Data)
-    console.log(westLevel3Data.filter((item) => { return !item.zoom }))
   }
   calculateBubbles(bubbles, nodeList, zoom, totalHeight) {
     for (let index = 0; index < bubbles.length; index++) {
@@ -381,6 +428,7 @@ export default class PhilTimebar {
     // this.westLevel3Data = this.philData.filter(phil => phil.originType === 'WEST').filter(phil => phil.importance >= 2).sort((m, n) => m.year - n.year)
     this.westLevel4Data = this.getLevelData(3, 'WEST')
 
+    console.log(this.westLevel3Data)
   }
   drawBubble(title, desc) {
     let $container = $('<div></div>')
@@ -478,16 +526,23 @@ export default class PhilTimebar {
     if (totalHeight) {
 
 
+
       this.westRenderList = []
       this.eastRenderList = []
       this.centerPx = this.ruler.centerPx
+      this.philData.forEach(phil => {
+        const { originType, year } = phil
+        phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
+        phil.y = parseInt(this.ruler.getYbyTime(year))
+        phil.originY = parseInt(this.ruler.getYbyTime(year))
+      })
       if (this['totalHeight' + totalHeight]) {
 
         if (this.tabIndex == 0) {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -504,7 +559,7 @@ export default class PhilTimebar {
           this['totalHeight' + totalHeight].westRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               if (window[itemId]) {
@@ -517,7 +572,7 @@ export default class PhilTimebar {
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               if (window[itemId]) {
@@ -531,7 +586,7 @@ export default class PhilTimebar {
           this['totalHeight' + totalHeight].eastRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -548,12 +603,7 @@ export default class PhilTimebar {
       } else {
 
         this['totalHeight' + totalHeight] = {}
-        this.philData.forEach(phil => {
-          const { originType, year } = phil
-          phil.x = originType === 'EAST' ? this.centerPx + 100 : this.centerPx - 100
-          phil.y = parseInt(this.ruler.getYbyTime(year))
-          phil.originY = parseInt(this.ruler.getYbyTime(year))
-        })
+
 
         this.westRenderList = this.mapHighLevelNodeList('WEST')
         this.eastRenderList = this.mapHighLevelNodeList('EAST')
@@ -563,7 +613,7 @@ export default class PhilTimebar {
           this.westRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -581,7 +631,7 @@ export default class PhilTimebar {
           this.westRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               if (window[itemId]) {
@@ -594,7 +644,7 @@ export default class PhilTimebar {
           this.eastRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               this.drawAvatar(nowPhilNode, nowPhilNode.angle ? nowPhilNode.angle : false)
             } else {
               if (window[itemId]) {
@@ -608,7 +658,7 @@ export default class PhilTimebar {
           this.eastRenderList.forEach(nowPhilNode => {
             const { itemId } = nowPhilNode
             let isWithInScreen = this.checkIsWithIn(nowPhilNode)
-            if (nowPhilNode.canDraw && isWithInScreen) {
+            if (nowPhilNode.canDraw && isWithInScreen && nowPhilNode.importance !== 3) {
               if (nowPhilNode.saying) {
                 this.drawPhilQuote(nowPhilNode)
               }
@@ -625,6 +675,12 @@ export default class PhilTimebar {
 
         }
       }
+      this.eastLevel4Data.forEach((nowPhilNode) => {
+        this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+      })
+      this.westLevel4Data.forEach((nowPhilNode) => {
+        this.drawDot(nowPhilNode.y, nowPhilNode.zoom, this.nowZoom)
+      })
       this.eastWithInData = this.filterWithInPhilData(this.eastWithOutLevel3, this.screenStartTime, this.screenEndTime)
       this.westWithInData = this.filterWithInPhilData(this.westWithOutLevel3, this.screenStartTime, this.screenEndTime)
 
