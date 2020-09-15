@@ -33,7 +33,9 @@ export default class Timebar {
       unitTime: 40,
       minUnitTime: 0.1, // 最小刻度
       maxUnitTime: 40, // 最大刻度
-      zoomSpeed: 0.5,
+      unitIndex: 0,
+      unitList: [40, 20, 10, 5, 2.5, 1, 0.5, 0.1],
+      zoomSpeed: 1,
       touchZoomSpeed: 0.7,
       zoom: 1,
       unitWidth: 24,
@@ -118,8 +120,8 @@ export default class Timebar {
     this._resize();
     this.updateTotalWidth();
     this.updateBufferYears();
-    // this.render()
-    this.tickerStart()
+    this.render()
+    // this.tickerStart()
     this.bind();
 
   }
@@ -200,7 +202,7 @@ export default class Timebar {
     this.ctx.restore();
     // 如果长时间没有操作停止 requestAnimationFrame
     // window.cancelAnimationFrame(this.animate)
-    this.ticker = window.requestAnimationFrame(this.render.bind(this))
+    window.requestAnimationFrame(this.render.bind(this))
 
 
   }
@@ -219,8 +221,8 @@ export default class Timebar {
   updateBufferYears() {
     let currentStartTime = this.getTimeByPixel(this.translate.y);
     let oneScreenTime = this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0);
-    this.bufferYears.min = this.getTimeByPixel(0) - oneScreenTime;
-    this.bufferYears.max = this.getTimeByPixel(0) + oneScreenTime * 2;
+    this.bufferYears.min = parseInt(this.getTimeByPixel(0) - oneScreenTime);
+    this.bufferYears.max = parseInt(this.getTimeByPixel(0) + oneScreenTime * 2);
     this.zeroX = this.getYbyTime(0);
     this.renderStartX = ((this.minYear - currentStartTime - oneScreenTime) / this.unitTime) * this.unitWidth;
   }
@@ -233,47 +235,45 @@ export default class Timebar {
     this.ctx.fillStyle = '#999999';
     let loneLineCounter = 0;
 
-    for (let i = 0; i > this.minYear; i -= this.unitTime) {
-      if (i < this.bufferYears.min || i > this.bufferYears.max) {
-        loneLineCounter++;
-        continue;
-      }
-      let y = Math.floor(-(loneLineCounter + 1) * this.unitWidth + this.zeroX);
-      let isLongUnit = (loneLineCounter + 1) % 10 == 0;
+    // for (let i = 0; i > this.minYear; i -= this.unitTime) {
+    //   if (i < this.bufferYears.min || i > this.bufferYears.max) {
+    //     loneLineCounter++;
+    //     continue;
+    //   }
+    //   let y = Math.floor(-(loneLineCounter + 1) * this.unitWidth + this.zeroX);
+    //   let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-      this.drawLine(y, isLongUnit ? 20 : 8);
+    //   this.drawLine(y, isLongUnit ? 20 : 8);
+    //   if (isLongUnit) {
+    //     // this.drawText(i - this.unitTime, y)
+    //   }
+    //   loneLineCounter++;
 
-      // console.log(i)
-      if (isLongUnit) {
-        this.drawText(i - this.unitTime, y)
-      }
-      loneLineCounter++;
+    // }
+    // loneLineCounter = 0
+    // for (let j = 1; j < this.maxYear; j += this.unitTime) {
+    //   if (j < this.bufferYears.min || j > this.bufferYears.max) {
 
-    }
-    loneLineCounter = 0
-    for (let j = 1; j < this.maxYear; j += this.unitTime) {
-      // console.log(j)
-      if (j < this.bufferYears.min || j > this.bufferYears.max) {
-        loneLineCounter++;
-        continue;
-      }
+    //     loneLineCounter++;
+    //     continue;
+    //   }
 
-      let y = Math.floor(loneLineCounter * this.unitWidth + this.zeroX);
-      let isLongUnit = loneLineCounter % 10 == 0;
+    //   let y = Math.floor(loneLineCounter * this.unitWidth + this.zeroX);
+    //   let isLongUnit = loneLineCounter % 10 == 0;
 
 
-      let text = j - 1;
-      if (j == 1) {
-        text = `${j}AD`
-      }
+    //   let text = j - 1;
+    //   if (j == 1) {
+    //     text = `${j}AD`
+    //   }
 
-      this.drawLine(y, isLongUnit ? 20 : 8);
+    //   this.drawLine(y, isLongUnit ? 20 : 8);
 
-      if (isLongUnit) {
-        this.drawText(text, y)
-      }
-      loneLineCounter++;
-    }
+    //   if (isLongUnit) {
+    //     // this.drawText(text, y)
+    //   }
+    //   loneLineCounter++;
+    // }
     /**
      * 绘制1年之前的刻度
      */
@@ -308,7 +308,7 @@ export default class Timebar {
 
         let text = i - 1;
         if (i == 1) {
-          text = i
+          text = '1AD'
         }
 
         this.drawLine(y, isLongUnit ? 20 : 8);
@@ -323,8 +323,6 @@ export default class Timebar {
   }
 
   drawLine(y, width = 10, color = `rgb(151, 151, 151)`) {
-
-    this.ctx.save()
     y = Math.floor(y);
 
     let halfWidth = width / 2
@@ -335,7 +333,6 @@ export default class Timebar {
     this.ctx.lineTo(this.centerPx + halfWidth, y);
     this.ctx.stroke();
     this.ctx.closePath();
-    this.ctx.restore()
   }
 
   drawDisable() {
@@ -372,13 +369,14 @@ export default class Timebar {
     // if (month != 'Jan.') {
     //   text += ' ' + month;
     // }
+
     let text = Math.floor(year);
     if (text !== text) {
-      text = 1;
+      text = `1`
     }
     this.ctx.beginPath();
     this.ctx.textAlign = "center";
-    this.ctx.fillText(year < 0 ? `${Math.abs(text)}BC` : text, Math.round(this.centerPx - 30), y + 3)
+    this.ctx.fillText(year < 0 ? `${Math.abs(text)}BC` : text, this.centerPx - 30, parseInt(y) + 3)
     this.ctx.closePath();
     // let month = dateUtil.yearToMonth(year, 'short-en');
     // console.log(month)
@@ -663,14 +661,15 @@ export default class Timebar {
      */
     let zoomRatio = this.maxUnitWidth / this.minUnitWidth;
 
-
-
     if (newUnitWidth > this.maxUnitWidth) {
       if (this.unitTime <= this.minUnitTime) {
         return
       }
+      this.unitIndex++
+      // 时间轴缩放等级变大
       newUnitWidth = this.minUnitWidth;
-      newUnitTime = Math.floor(this.unitTime / zoomRatio);
+      newUnitTime = this.unitList[this.unitIndex]
+
     }
 
 
@@ -678,12 +677,13 @@ export default class Timebar {
       if (this.unitTime >= this.maxUnitTime) {
         return
       }
+      this.unitIndex--
+      // 时间轴缩放等级变小
       newUnitWidth = this.maxUnitWidth;
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio == 4 ? 5 : this.unitTime * zoomRatio
-      // console.log('newUnitTime' + newUnitTime)
+      newUnitTime = this.unitList[this.unitIndex]
     }
 
 
@@ -694,9 +694,9 @@ export default class Timebar {
      * 如果10个刻度小于一年则不再缩放
      */
     let offsetAreaDuration = this.getOffsetAreaDuration(newUnitWidth, newUnitTime);
-    // if ((offsetAreaDuration > 0)) {
-    //   return;
-    // }
+    if ((offsetAreaDuration > 0)) {
+      return;
+    }
 
 
     /**
@@ -723,7 +723,6 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    this.tickerStart()
     let renderData = {
       totalHeight: this.totalWidth,
       screenStartTime: this.getTimeByPixel(0),
@@ -764,8 +763,11 @@ export default class Timebar {
       if (this.unitTime <= this.minUnitTime) {
         return
       }
+      this.unitIndex++
+      // 时间轴缩放等级变大
       newUnitWidth = this.minUnitWidth;
-      newUnitTime = this.unitTime / zoomRatio == 2.5 ? 2 : this.unitTime / zoomRatio
+      newUnitTime = this.unitList[this.unitIndex]
+
     }
 
 
@@ -773,11 +775,13 @@ export default class Timebar {
       if (this.unitTime >= this.maxUnitTime) {
         return
       }
+      this.unitIndex--
+      // 时间轴缩放等级变小
       newUnitWidth = this.maxUnitWidth;
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio == 2.5 ? 2 : this.unitTime * zoomRatio
+      newUnitTime = this.unitList[this.unitIndex]
     }
 
 
@@ -800,7 +804,6 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-    console.log(this.unitTime)
     /**
      * 更新总长度
      */
