@@ -1,2 +1,2 @@
 
-import Philtimebar from '../src/test.js'
+import Philtimebar from '../src/index.js'

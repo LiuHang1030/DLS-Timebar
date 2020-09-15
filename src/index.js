@@ -1,6 +1,10 @@
 // import Service from '../src/utils/ajaxUtil'
 import PhilTimebar from './phil-timebar'
+import Timebar from './test-timebar'
 
+// let timebar = new Timebar({
+
+// })
 
 // const mockLength = 20
 // let philData = []
@@ -23,7 +27,6 @@ const philData = [{ "id": 37, "itemId": "57d8f8000bd1be905c8b4568", "itemName": 
 const periodData = [{ "id": 1, "periodName": "先秦", "startYear": -2000, "endYear": -221, "type": "EAST" }, { "id": 2, "periodName": "两汉", "startYear": -220, "endYear": 190, "type": "EAST" }, { "id": 3, "periodName": "魏晋南北朝", "startYear": 191, "endYear": 580, "type": "EAST" }, { "id": 4, "periodName": "隋唐", "startYear": 581, "endYear": 960, "type": "EAST" }, { "id": 5, "periodName": "宋明", "startYear": 961, "endYear": 1634, "type": "EAST" }, { "id": 6, "periodName": "清代至近现代", "startYear": 1635, "endYear": null, "type": "EAST" }, { "id": 7, "periodName": "古希腊罗马", "startYear": -1000, "endYear": 180, "type": "WEST" }, { "id": 8, "periodName": "中世纪", "startYear": 181, "endYear": 1555, "type": "WEST" }, { "id": 9, "periodName": "近代", "startYear": 1556, "endYear": 1818, "type": "WEST" }, { "id": 10, "periodName": "现当代", "startYear": 1819, "endYear": null, "type": "WEST" }]
 
 const bubbles = [{ "id": 9, "bubbleTitle": "黑暗时代", "bubbleDesc": "黑暗时代大约在476年-800年左右，即，从西罗马帝国灭亡至查理曼大帝建立查理曼帝国，这一期间文化生活相对凋敝。造成所谓“黑暗”的原因是由于蛮族的入侵，导致原有的文化建制被一扫而空，并非是由于基督教导致的，相反，基督教会中所聚集的知识分子反而在黑暗时代起到了保留文明火种的作用。", "philYear": 500, "originType": "WEST", "status": "UP" }, { "id": 22, "bubbleTitle": "启蒙主义思潮", "bubbleDesc": "启蒙运动是一场发生于17、18世纪的哲学及文化运动。西方社会展开了在思潮、知识及媒体上的“启蒙”，开启了现代化和现代性的发展历程。此运动对当时的哲学家产生了重大影响。", "philYear": 1647, "originType": "WEST", "status": "UP" }, { "id": 23, "bubbleTitle": "浪漫主义思潮", "bubbleDesc": "18世纪末、19世纪初，在欧洲出现了一股强大的思潮，这股思潮很大程度上是对先前的启蒙主义思潮以及工业革命的一次反制，浪漫主义反抗理性化，注重美学和情感体验，对哲学史的走向造成重大影响。", "philYear": 1776, "originType": "WEST", "status": "UP" }, { "id": 24, "bubbleTitle": "文艺复兴思潮", "bubbleDesc": "欧洲的14-16世纪史称文艺复兴时期，文艺复兴时期复兴的并不仅仅是文学和艺术，科学和哲学在此期间也得到了新的发展。文艺复兴的初衷是回复到古希腊的文化氛围之中，在此期间，古代圣哲的经典时隔漫长的中世纪之后再次回归西方人视野。", "philYear": 1356, "originType": "WEST", "status": "UP" }, { "id": 26, "bubbleTitle": "理学官方化", "bubbleDesc": "仁宗延祐二年(1315)，元朝第一次开科取士，规定以朱熹《四书章句集注》为考试内容，其他“非程朱学，不试于有司。”程朱理学成为元代选官择士的准绳，而延祐开科则成为元代理学官学化的标志。理学的官学化对后世产生了深远的影响，此后的明清两代统治者都沿袭了这一政策，理学成为我国传统社会后期的政治指导思想。但是伴随而来的也是理学的教条化，明代中后期的许多激进思潮都因此而起。", "philYear": 1315, "originType": "EAST", "status": "UP" }, { "id": 27, "bubbleTitle": "礼崩乐坏与王道史观", "bubbleDesc": "周公制礼作乐，为中华文明奠定了制度的基础。周末，礼乐崩坏，斯文废弛，百家争鸣，孔子于是删修经典，作《春秋》，故有六经，即《诗》《书》《礼》《易》《乐》《春秋》。自此，中华文明形态的展开都基于对六经的理解，经典意识成为中国学术的根本。同时，六经也奠定了理解上古历史的基本方式，即王道史观，大同之世是中国文明的理想之境，也是其最完美的开端。", "philYear": -771, "originType": "EAST", "status": "UP" }, { "id": 29, "bubbleTitle": "加洛林文艺复兴", "bubbleDesc": "加洛林文艺复兴发生在公元8世纪晚期至9世纪的卡洛林王朝，由查理曼大帝及其后继者在欧洲推行的文艺的复兴运动，主要的进步在文学、艺术、宗教典籍、建筑、法律哲学，被称为是“欧洲的第一次觉醒”。", "philYear": 825, "originType": "WEST", "status": "UP" }, { "id": 30, "bubbleTitle": "发现自然", "bubbleDesc": "哲学发端于对自然的发现。“自然”是一个区分性的名辞，它首先是相对于习俗和神话而言的。当第一个爱智慧者在思考世界本原问题时，试图从神话和习俗之外寻求答案，自然便被发现，哲学得以诞生。", "philYear": -790, "originType": "WEST", "status": "UP" }, { "id": 31, "bubbleTitle": "古文运动", "bubbleDesc": "唐朝安史之乱后，国势衰落，藩镇割据，宦官弄权，同时也遭遇了文化危机。由韩愈、柳宗元提倡古文、反对骈文的一次文风、文体、文学语言的革新运动，是在“复古”的口号下，主要对文风、文体和文学语言的一场文化革命。其内容主要是复兴儒学，其形式就是反对骈文，提倡古文。", "philYear": 780, "originType": "EAST", "status": "UP" }, { "id": 32, "bubbleTitle": "董仲舒献“天人三策”", "bubbleDesc": "西汉建元六年（前135），太皇太后窦氏驾崩，元光元年（前134），汉武帝令郡国举孝廉，策贤良，他在当年策贤良文学诏中向董仲舒问道。董仲舒就武帝在天道、人世、治乱等三个方面的问题，从容作答，史称“天人三策”，并且提出独尊“六艺之科、孔子之术”的主张。", "philYear": -134, "originType": "EAST", "status": "UP" }, { "id": 33, "bubbleTitle": "唐宋变革", "bubbleDesc": "“唐宋变革”并非中国历史的某个事件，而是一种今人理解历史的方式。许多近代历史学家都观察到，唐宋在文化、政治与经济形态上都有较大差异，甚至有学者认为宋代是中国近世的开端，中国的现代性要追溯至此。无论这些理解背后有怎样的预设与分歧，但是不容忽视的一点是，中国文化的形态从宋代起发生了较为明显地转变，从儒学的发展来看，理学的兴起就是一个最有力的标志。", "philYear": 875, "originType": "EAST", "status": "UP" }, { "id": 35, "bubbleTitle": "鹅湖之会", "bubbleDesc": "南宋淳熙二年(1175)六月，吕祖谦为了调和朱熹“理学”和陆九渊“心学”之间的理论分歧，使两人的哲学观点“会归于一”，于是出面邀请陆九龄、陆九渊兄弟前来与朱熹见面。六月初，陆氏兄弟应约来到鹅湖寺，双方就各自的哲学观点展开了激烈的辩论，这就是中国思想史上著名的“鹅湖之会”。其中争论的焦点被概括为“道问学”与“尊德性”之争。", "philYear": 1160, "originType": "EAST", "status": "UP" }, { "id": 36, "bubbleTitle": "天理世界观的瓦解", "bubbleDesc": "自宋朝二程独标“天理”以来，儒家世界观始终坚持对天理的认可，相信宇宙存在有目的的完满秩序，并且其中有等级的分布，万物各安其位。但是近代以来，与西方文明的相遇带来了现代科学世界观，机械世界与斗争秩序冲破了天理世界观的基本认定，并且带来新的历史意识，即进步史观，历史不再被设想为是朝向完美秩序的回复，而是被视为在力的角逐的推动下朝向未来目的的进程。", "philYear": 1812, "originType": "EAST", "status": "UP" }, { "id": 37, "bubbleTitle": "牛顿第一运动定律的提出", "bubbleDesc": "近代思想的确立通过牛顿的伟大著作《自然哲学的数学原理》首次得到了系统的和创造性地完成。其中第一运动定律的提出意义重大。在这条定律的发现及其被确立为基本法则的过程中，发生了一场革命，它属于人类思维的最伟大的革命，并为从托勒密到哥白尼自然整体观念的转向首先奠定了基础。", "philYear": 1687, "originType": "WEST", "status": "UP" }, { "id": 38, "bubbleTitle": "白虎观会议", "bubbleDesc": "东汉建初四年(79)，汉章帝在白虎观召集诸儒，考定群经诸家异同，汉章帝亲自裁定经义，以求获得一个对经典的统一理解。会议持续了数月，最后汉章帝命班固等将讨论的结果汇编成书，即《白虎通》。这次会议的评定以今文经学为主，裁断诸经，蔚为大观，是后世理解今文经学的重要枢纽。", "philYear": 84, "originType": "EAST", "status": "UP" }, { "id": 39, "bubbleTitle": "朴学的兴起与汉宋之争", "bubbleDesc": "明清易代之际，自顾炎武起，考据训诂之学就逐渐兴起，整个清代学术都以此为主调。朴学的基本态度在于通过对经典文本的考据与训诂，求得切实可信的圣人真意，因此，考据并非一项简单的学术工作，其目的是求得义理。清儒的理想是复兴汉代学术，他们认为汉代去古未远，并且学术授受各有源流，而魏晋以后，玄学大兴，理学更是有脱离经书而空谈义理的浮华倾向，因而经义不明。清代朴学是以汉宋之争为基本场域而展开的。", "philYear": 1667, "originType": "EAST", "status": "UP" }, { "id": 40, "bubbleTitle": "汉魏之际的经学与玄风", "bubbleDesc": "东汉末年，经学的没落和社会批判思潮的兴起都是当时的社会危机的产物。而曹魏正始年间，何晏、王弼的贵无论玄学在哲学史上引起了一场划时代的变革。这场变革终结了统治两汉时期数百年之久的经学传统，开创了贯穿整个魏晋南北朝时期的一代玄风。经学方面，今文经学式微，古文经学逐渐成为时代显学。", "philYear": 130, "originType": "EAST", "status": "UP" }]
-
 let yearArr = {};
 const philTimeBar = new PhilTimebar({
   philData: philData.map(node => {
@@ -48,7 +51,40 @@ const philTimeBar = new PhilTimebar({
   periodData,
   bubbles: bubbles.sort((a, b) => {
     return a.philYear - b.philYear
-  })
+  }),
+  avatarAssets: {
+    avatar: 'static/avatar@2x.png',
+    importantNum: ['static/1@2x.png', 'static/2@2x.png', 'static/3@2x.png']
+  },
+  quoteAssets: {
+    arrow: 'static/unfold@2x.png'
+  },
+})
+console.log(philData.map(node => {
+  if (yearArr[node.year] === undefined) {
+    yearArr[node.year] = 0;
+  }
+  let month = yearArr[node.year] * 0.5;
+  let year = node.year > 0 ? node.year + month : node.year - (1 - month)
+  yearArr[node.year]++;
+  return {
+    ...node,
+    year
+  }
+}).sort((a, b) => {
+  if (a.year == b.year) {
+    return a.importance - b.importance;
+  }
+  else {
+    return a.year - b.year;
+  }
+}))
+var month = philData.map(node => {
+  if (node.month !== 0) {
+    return node
+  } else {
+  }
+
 })
 // Service.getPhilData().then((resp) => {
 //   if (resp.code == 200) {

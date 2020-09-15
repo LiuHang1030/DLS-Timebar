@@ -128,9 +128,9 @@ export default class Timebar {
     if (this.canRender) {
       this.canRender = false
       this.render()
-      setTimeout(() => {
-        this.tickerStop()
-      }, this.tickerTime * 1000);
+      // setTimeout(() => {
+      //   this.tickerStop()
+      // }, this.tickerTime * 1000);
     }
   }
   tickerStop() {
@@ -380,6 +380,23 @@ export default class Timebar {
     this.ctx.textAlign = "center";
     this.ctx.fillText(year < 0 ? `${Math.abs(text)}BC` : text, Math.round(this.centerPx - 30), y + 3)
     this.ctx.closePath();
+    // let month = dateUtil.yearToMonth(year, 'short-en');
+    // console.log(month)
+    // let text = Math.floor(year);
+    // if (text !== text) {
+    //   text = 1;
+    // }
+    // if (month != 'Jan.') {
+    //   // text += ' ' + month;
+    // }
+    // if (year < 0) {
+    //   text += 'BC'
+    // }
+
+    // this.ctx.beginPath();
+    // this.ctx.textAlign = "center";
+    // this.ctx.fillText(text, Math.round(this.centerPx - 30), y + 3)
+    // this.ctx.closePath();
   }
 
   _fixOverFlowTranslate(y) {
@@ -727,7 +744,6 @@ export default class Timebar {
    */
   _zoom(delta) {
 
-
     /**
      * 定义新的参数
      */
@@ -749,7 +765,7 @@ export default class Timebar {
         return
       }
       newUnitWidth = this.minUnitWidth;
-      newUnitTime = this.unitTime / zoomRatio;
+      newUnitTime = this.unitTime / zoomRatio == 2.5 ? 2 : this.unitTime / zoomRatio
     }
 
 
@@ -761,18 +777,8 @@ export default class Timebar {
       /**
        * 刻度: 1,2,5,10,20,40 除了5以外都为2倍关系，故5的情况特殊处理
        */
-      newUnitTime = this.unitTime * zoomRatio
+      newUnitTime = this.unitTime * zoomRatio == 2.5 ? 2 : this.unitTime * zoomRatio
     }
-    // if (newUnitWidth > this.maxUnitWidth) {
-    //   newUnitWidth = this.minUnitWidth;
-    //   newUnitTime = this.unitTime / zoomRatio;
-
-    // }
-
-    // if (newUnitWidth < this.minUnitWidth) {
-    //   newUnitWidth = this.maxUnitWidth;
-    //   newUnitTime = this.unitTime * zoomRatio;
-    // }
 
 
 
@@ -794,15 +800,14 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
-
+    console.log(this.unitTime)
     /**
      * 更新总长度
      */
     this.updateTotalWidth();
     this.setCenterByTime(centerTime);
     this._fixOverFlowTranslate(this.translate.y);
-
-    // this.updateBufferYears();
+    this.updateBufferYears();
 
     /**
      * 如果总的可选区域小于offsetAreaDuration时间跨度，则固定为时间跨度的宽度

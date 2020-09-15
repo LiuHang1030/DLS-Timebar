@@ -36,11 +36,11 @@ export default class PhilTimebar {
       level3RenderList: [],
       westRenderList: [],
       eastRenderList: [],
-      tabIndex: 0,
+      tabIndex: 1,
       timebarTranslateY: 50,
       quoteWidth: 120,
-
-      NODE_HEIGHT: 120
+      NODE_HEIGHT: 120,
+      avatarAssets: {}
 
     }, props)
     this.initial()
@@ -72,11 +72,11 @@ export default class PhilTimebar {
     this.westBubbles = this.bubbles.filter(item => item.originType == 'WEST')
     this.totalTime = this.maxYear - this.minYear;
 
-    this.philDataEast = getLayOut({nodes: this.philData.filter(node => node.originType == 'EAST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT});
-    this.philDataWest = getLayOut({nodes: this.philData.filter(node => node.originType == 'WEST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT});
+    this.philDataEast = getLayOut({ nodes: this.philData.filter(node => node.originType == 'EAST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT });
+    this.philDataWest = getLayOut({ nodes: this.philData.filter(node => node.originType == 'WEST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT });
 
     this.philData = this.philDataEast.concat(this.philDataWest)
-
+    console.log(this.philData)
     this.timerbar = new Timebar({
       $html: this.$html,
       canvas: this.canvas,
@@ -100,7 +100,7 @@ export default class PhilTimebar {
         this.nowPeriodData = this.filterPeriodData(screenStartTime, screenEndTime)
         this.drawPeriod(e)
         this.zoomLevel = (screenEndTime - screenStartTime) / window.innerHeight;
-        console.log(this.zoomLevel)
+        // console.log(this.zoomLevel)
         this.calculatePosition()
       }
     })
@@ -189,7 +189,7 @@ export default class PhilTimebar {
     this.westQuote.addClass('quote').addClass('west-quote')
     this.$html.append(this.eastQuote)
     this.$html.append(this.westQuote)
-    this.$html.append($(document.createElement('p')))
+    // this.$html.append($(document.createElement('p')))
   }
   showQuote(nowPhilNode) {
     const { y, originType, saying, switchLine } = nowPhilNode
@@ -295,7 +295,7 @@ export default class PhilTimebar {
   }
   drawAvatar(avatarData, angle = 0) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl } = avatarData
+      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, importance } = avatarData
       if (!window[itemId]) {
         window[itemId] = new Avatar({
           $html: this.$html,
@@ -308,7 +308,9 @@ export default class PhilTimebar {
           angle,
           x,
           y,
-          originY
+          originY,
+          importance,
+          avatarAssets: this.avatarAssets
         })
         window[itemId].draw()
       } else {
@@ -319,6 +321,7 @@ export default class PhilTimebar {
         window[itemId].timeStr = timeStr
         window[itemId].originY = originY
         window[itemId].avatarUrl = avatarUrl
+        window[itemId].importance = importance
         window[itemId].draw()
       }
     }
@@ -329,56 +332,56 @@ export default class PhilTimebar {
     let before = -1;
     let nodesDrawCount = 0;
     this.philData.forEach(node => {
-      if(node.layout 
+      if (node.layout
         && node.originType === direction
-        && node.year >= this.ruler.bufferYears.min 
+        && node.year >= this.ruler.bufferYears.min
         && node.year <= this.ruler.bufferYears.max
-        ) {        
-          let y = (node.year - this.minYear) / this.zoomLevel;
-          node.originY = y;
-          if(node.layout.zoom >= this.zoomLevel) {
-            if(before !== -1) {
-              if(y - before >= (this.NODE_HEIGHT)) {
-                node.y = y;
-              }
-              else {
-                node.y = before + this.NODE_HEIGHT;
-              }
-            }   
-            else {
+      ) {
+        let y = (node.year - this.minYear) / this.zoomLevel;
+        node.originY = y;
+        if (node.layout.zoom >= this.zoomLevel) {
+          if (before !== -1) {
+            if (y - before >= (this.NODE_HEIGHT)) {
               node.y = y;
-            }   
-            node.x = direction === 'EAST' ? this.centerPx + 100 : this.centerPx - 100;
-            before = node.y;
-            this.drawAvatar(node, node.y - node.originY)
-
-            if(drawQuote) {
-              let quote = new Quote({
-                $html: this.$html,
-                canvas: this.canvas,
-                ctx: this.ctx,
-                originType: node.originType,
-                y: node.y,
-                saying: node.saying || {},
-                centerPx: this.centerPx
-              })
-              node.switchLine = quote.switchLine
             }
-            nodesDrawCount ++;
+            else {
+              node.y = before + this.NODE_HEIGHT;
+            }
           }
           else {
-            new Dot({
+            node.y = y;
+          }
+          node.x = direction === 'EAST' ? this.centerPx + 100 : this.centerPx - 100;
+          before = node.y;
+          this.drawAvatar(node, node.y - node.originY)
+
+          if (drawQuote) {
+            let quote = new Quote({
               $html: this.$html,
               canvas: this.canvas,
               ctx: this.ctx,
-              y: node.originY,
-              zoom: node.layout.zoom,
-              nowZoom: this.zoomLevel
+              originType: node.originType,
+              y: node.y,
+              saying: node.saying || {},
+              centerPx: this.centerPx
             })
+            node.switchLine = quote.switchLine
           }
+          nodesDrawCount++;
         }
+        else {
+          new Dot({
+            $html: this.$html,
+            canvas: this.canvas,
+            ctx: this.ctx,
+            y: node.originY,
+            zoom: node.layout.zoom,
+            nowZoom: this.zoomLevel
+          })
+        }
+      }
     })
-    if(nodesDrawCount == 0) {
+    if (nodesDrawCount == 0) {
       this.drawBubbles(direction)
     }
     else {
@@ -386,24 +389,24 @@ export default class PhilTimebar {
     }
   }
   hideBubbles(direction) {
-    if(direction === 'WEST') {
-      TweenLite.to(this.bubbleLeft, 0.3, {opacity: 0})
+    if (direction === 'WEST') {
+      TweenLite.to(this.bubbleLeft, 0.3, { opacity: 0 })
     }
     else {
-      TweenLite.to(this.bubbleRight, 0.3, {opacity: 0})
+      TweenLite.to(this.bubbleRight, 0.3, { opacity: 0 })
     }
   }
   drawBubbles(direction = 'WEST') {
-    for(let i = 0; i < this.bubbles.length; i ++) {
+    for (let i = 0; i < this.bubbles.length; i++) {
       let bubble = this.bubbles[i];
-      if(bubble.philYear <= this.screenEndTime && bubble.philYear >= this.screenStartTime) {
-        if(direction === 'WEST') {
+      if (bubble.philYear <= this.screenEndTime && bubble.philYear >= this.screenStartTime) {
+        if (direction === 'WEST') {
           this.bubbleLeft.innerHTML = bubble.bubbleDesc;
-          TweenLite.to(this.bubbleLeft, 1, {opacity: 1})
+          TweenLite.to(this.bubbleLeft, 1, { opacity: 1 })
         }
         else {
           this.bubbleRight.innerHTML = bubble.bubbleDesc;
-          TweenLite.to(this.bubbleRight, 1, {opacity: 1})
+          TweenLite.to(this.bubbleRight, 1, { opacity: 1 })
         }
       }
     }
@@ -413,7 +416,7 @@ export default class PhilTimebar {
     if (this.totalHeight) {
       this.centerPx = this.ruler.centerPx
       this.gapYear = this.ruler.getTimeByPixel(this.CIRCLE_DIAMETER) - this.ruler.getTimeByPixel(0)
-      
+
       if (this.tabIndex == 0) {
         this.drawNodes('WEST', true);
       } else if (this.tabIndex == 1) {
