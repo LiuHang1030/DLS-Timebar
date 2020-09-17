@@ -88,11 +88,12 @@ export default class PhilTimebar {
     let clickQuote = false
     const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
     // 时间轴点击回调
-    let eastRenderList = this.eastRenderList.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
+    let eastRenderList = this.philDataEast.filter((item) => {
+      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout.zoom > this.zoomLevel
     })
-    let westRenderList = this.westRenderList.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.canDraw
+
+    let westRenderList = this.philDataWest.filter((item) => {
+      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout.zoom > this.zoomLevel
     })
     let nowScreenRenderList = eastRenderList.concat(westRenderList)
 
