@@ -40,33 +40,10 @@ export default class PhilTimebar {
       timebarTranslateY: 50,
       quoteWidth: 120,
       NODE_HEIGHT: 120,
-      avatarAssets: {}
-
+      avatarAssets: {},
+      verticalLine: true
     }, props)
     this.initial()
-    // this.controller = new Controller({
-    //   $html: this.$html,
-    //   tab: true,
-    //   slider: true,
-    //   onTabClickHandle: (index) => {
-    //     this.tabIndex = index
-    //     this.ruler.render()
-    //     this.clearQuote()
-    //   },
-    //   onSliderClickHandle: (index) => {
-    //     // 改变缩放层级
-    //     switch (index) {
-    //       case 1:
-
-    //         break;
-    //       case 2:
-    //         break;
-    //       case 3:
-    //         break;
-    //     }
-    //   }
-    // })
-
     this.createQuote()
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
     this.westBubbles = this.bubbles.filter(item => item.originType == 'WEST')
@@ -175,6 +152,7 @@ export default class PhilTimebar {
       if (clickQuote) {
         this.showQuote(hasClickNodeList[0])
       } else {
+        console.log(hasClickNodeList[0])
         // 弹出跳转 APP 登录框
       }
     }
@@ -243,6 +221,16 @@ export default class PhilTimebar {
     this.canvas = canvas
     this.ctx = ctx
     this.$html = $html
+    if (this.verticalLine) {
+      let $verticalLine = $(document.createElement('div'))
+      $verticalLine.css('width', 1)
+      $verticalLine.css('height', this.$html.height())
+      $verticalLine.css('background-color', 'rgba(151, 151, 151, 0.5)')
+      $verticalLine.css('position', 'absolute')
+      $verticalLine.css('left', this.$html.width() / 2 - 0.5)
+      $verticalLine.css('top', 0)
+      this.$html.append($verticalLine)
+    }
     this.$body = $('body')[0]
     this.ratio = window.devicePixelRatio
 

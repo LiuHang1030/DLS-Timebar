@@ -1021,7 +1021,7 @@ export default class Timebar {
 
 
     let mouseEventDom = $(window);
-    let toucheEventDom = $('#timebar')
+    let toucheEventDom = $(window)
 
 
     toucheEventDom.on('mousewheel', this._mouseWheel.bind(this))
