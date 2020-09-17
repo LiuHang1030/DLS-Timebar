@@ -35,8 +35,8 @@ export default class Timebar {
       maxUnitTime: 40, // 最大刻度
       unitIndex: 0,
       unitList: [40, 20, 10, 5, 2.5, 1, 0.5, 0.1],
-      zoomSpeed: 1,
-      touchZoomSpeed: 0.7,
+      zoomSpeed: 0.5,
+      touchZoomSpeed: 1,
       zoom: 1,
       unitWidth: 24,
       mousePos: {
@@ -163,15 +163,6 @@ export default class Timebar {
     this.container.appendChild(this.$html[0]);
 
   }
-  drawYaxis() {
-    this.ctx.beginPath()
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeStyle = `rgba(151, 151, 151,0.6)`
-    this.ctx.moveTo(this.centerPx, 0)
-    this.ctx.lineTo(this.centerPx, this.totalWidth)
-    this.ctx.stroke()
-    this.ctx.closePath()
-  }
   _resize() {
     this.canvas.width = this.$html.width() * this.ratio;
     this.canvas.height = this.$html.height() * this.ratio;
@@ -188,7 +179,7 @@ export default class Timebar {
     this.ctx.scale(this.ratio, this.ratio);
     this.ctx.translate(this.translate.x, this.translate.y)
     this.drawUnit();
-    this.drawYaxis()
+
     let renderData = {
       totalHeight: this.totalWidth,
       screenStartTime: this.getTimeByPixel(0),
@@ -223,6 +214,13 @@ export default class Timebar {
     let oneScreenTime = this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0);
     this.bufferYears.min = parseInt(this.getTimeByPixel(0) - oneScreenTime);
     this.bufferYears.max = parseInt(this.getTimeByPixel(0) + oneScreenTime * 2);
+    // if (this.unitTime !== 0.1) {
+    //   this.bufferYears.min = parseInt(this.getTimeByPixel(0) - oneScreenTime);
+    //   this.bufferYears.max = parseInt(this.getTimeByPixel(0) + oneScreenTime * 2);
+    // } else {
+    //   this.bufferYears.min = parseInt(this.getTimeByPixel(0) - 5);
+    //   this.bufferYears.max = parseInt(this.getTimeByPixel(0) + 10);
+    // }
     this.zeroX = this.getYbyTime(0);
     this.renderStartX = ((this.minYear - currentStartTime - oneScreenTime) / this.unitTime) * this.unitWidth;
   }
@@ -234,46 +232,6 @@ export default class Timebar {
 
     this.ctx.fillStyle = '#999999';
     let loneLineCounter = 0;
-
-    // for (let i = 0; i > this.minYear; i -= this.unitTime) {
-    //   if (i < this.bufferYears.min || i > this.bufferYears.max) {
-    //     loneLineCounter++;
-    //     continue;
-    //   }
-    //   let y = Math.floor(-(loneLineCounter + 1) * this.unitWidth + this.zeroX);
-    //   let isLongUnit = (loneLineCounter + 1) % 10 == 0;
-
-    //   this.drawLine(y, isLongUnit ? 20 : 8);
-    //   if (isLongUnit) {
-    //     // this.drawText(i - this.unitTime, y)
-    //   }
-    //   loneLineCounter++;
-
-    // }
-    // loneLineCounter = 0
-    // for (let j = 1; j < this.maxYear; j += this.unitTime) {
-    //   if (j < this.bufferYears.min || j > this.bufferYears.max) {
-
-    //     loneLineCounter++;
-    //     continue;
-    //   }
-
-    //   let y = Math.floor(loneLineCounter * this.unitWidth + this.zeroX);
-    //   let isLongUnit = loneLineCounter % 10 == 0;
-
-
-    //   let text = j - 1;
-    //   if (j == 1) {
-    //     text = `${j}AD`
-    //   }
-
-    //   this.drawLine(y, isLongUnit ? 20 : 8);
-
-    //   if (isLongUnit) {
-    //     // this.drawText(text, y)
-    //   }
-    //   loneLineCounter++;
-    // }
     /**
      * 绘制1年之前的刻度
      */
@@ -820,7 +778,7 @@ export default class Timebar {
     }
 
     // _zoom 方法中不再执行 render函数
-    this.tickerStart()
+    // this.tickerStart()
     /**
      * 触发外部事件
      */

@@ -23,14 +23,14 @@ export default class Avatar {
       hasShow: false,
       numWidth: 5,
       numHeight: 8,
-      avatarAssets: {}
+      avatarAssets: {},
+      cacheCanvasWidth: 80
 
     }, props)
-    this.importance = parseInt(this.importance)
-    this.outterCircle = document.createElement('img')
-    this.outterCircle.src = this.avatarAssets.avatar
-    this.importanceImage = document.createElement('img')
-    this.importanceImage.src = this.avatarAssets.importantNum[this.importance - 1]
+
+
+
+
     this.ratio = window.devicePixelRatio; // 设备像素比
     this.centerPx = this.$html.width() / 2
     this.oppsiteSide = this.angle && this.angle >= 0 ? this.angle * 120 : 0
@@ -193,10 +193,12 @@ export default class Avatar {
     const lineMoveToX = this.originType === 'EAST' ? this.x - this.size - 3 : this.x + this.size + 3
 
     if (this.cacheCanvas) {
-      this.ctx.drawImage(this.cacheCanvas, this.x, this.y, 2 * this.size, 2 * this.size)
+      this.ctx.drawImage(this.cacheCanvas, this.x - 40, this.y - this.size, 80, 80)
+
     } else {
       this.createCacheAvatar()
     }
+    this.drawLine(this.ctx, lineMoveToX, this.y, this.originY)
 
 
     // if (this.cacheAvatar) {
@@ -207,36 +209,58 @@ export default class Avatar {
     // this.drawCircle(this.ctx, this.x, this.y)
     // this.drawText(this.ctx, this.philName, this.x, this.y + this.size + 20)
     // this.drawText(this.ctx, this.born, this.x, this.y + this.size + 35, true, 9)
-    // this.drawLine(this.ctx, lineMoveToX, this.y, this.originY)
+
   }
   createCacheAvatar() {
     this.cacheCanvas = document.createElement("canvas");
     this.cacheCtx = this.cacheCanvas.getContext("2d");
     this.cacheCtx.save()
-    this.cacheCanvas.width = 2 * this.size * this.ratio;
-    this.cacheCanvas.height = 2 * this.size * this.ratio;
-    this.cacheCanvas.style.transformOrigin = '0 0'
+
+    this.cacheCanvas.width = 80 * this.ratio;
+    this.cacheCanvas.height = 80 * this.ratio;
+    this.cacheCanvas.style.transformOrigin = `0 0`
     this.cacheCanvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
-    this.cacheCtx.beginPath()
-    this.cacheCtx.rect(0, 0, 2 * this.size * this.ratio, 2 * this.size * this.ratio)
-    this.cacheCtx.strokeStyle = `red`
-    this.cacheCtx.stroke()
-    this.cacheCtx.closePath()
-    this.drawText(this.cacheCtx, this.philName, this.x, this.y + this.size + 20)
+
+    // this.cacheCtx.beginPath()
+    // this.cacheCtx.strokeStyle = 'red'
+    // this.cacheCtx.rect(0, 0, 80 * this.ratio, 80 * this.ratio)
+    // this.cacheCtx.stroke()
+    // this.cacheCtx.closePath()
+
+
     var img = document.createElement('img')
     img.src = this.avatarUrl
     img.onload = () => {
-      this.cacheCtx.drawImage(img, 0, 0, 2 * this.size * this.ratio, 2 * this.size * this.ratio)
-    }
-    // this.drawCircle(this.cacheCtx, this.x, this.y)
+      this.drawRadiusImage(this.cacheCtx, img, 80 * this.ratio / 2 - (this.size * this.ratio), 0, this.size * this.ratio)
+      this.outterCircle = document.createElement('img')
+      this.outterCircle.src = this.avatarAssets.avatar
+      this.outterCircle.onload = () => {
+        this.cacheCtx.drawImage(this.outterCircle, 80 * this.ratio / 2 - (this.size * this.ratio), 0, this.size * this.ratio * 2, this.size * this.ratio * 2)
+        this.importanceImage = document.createElement('img')
+        this.importance = parseInt(this.importance)
+        this.importanceImage.src = this.avatarAssets.importantNum[this.importance - 1]
+        this.importanceImage.onload = () => {
+          this.cacheCtx.drawImage(this.importanceImage, 80 * this.ratio / 2 - (this.numWidth * this.ratio / 2), this.size * this.ratio * 2 - this.numHeight * this.ratio, this.numWidth * this.ratio, this.numHeight * this.ratio)
+        }
+      }
 
-    // this.drawText(this.cacheCtx, this.born, this.x, this.y + this.size + 35, true)
-    // this.drawText(this.cacheCtx, this.philName, this.x, this.y + this.size + 20)
+
+    }
+    // this.outterCircle.onload = () => {
+    //   this.cacheCtx.drawImage(this.outterCircle, 80 * this.ratio / 2 - (this.size * this.ratio), 0, this.size * this.ratio * 2, this.size * this.ratio * 2)
+    // }
+    // this.importanceImage.onload = () => {
+    //   this.cacheCtx.drawImage(this.importanceImage, 80 * this.ratio / 2 - (this.numWidth * this.ratio / 2), this.size * this.ratio * 2 - this.numHeight * this.ratio, this.numWidth * this.ratio, this.numHeight * this.ratio)
+    // }
+
+
+    this.drawText(this.cacheCtx, this.philName, (80 * this.ratio) / 2, 80 * this.ratio - 12 * this.ratio, false, 12)
+    this.drawText(this.cacheCtx, this.born, (80 * this.ratio) / 2, 80 * this.ratio, true, 9)
+
     this.cacheCtx.restore()
 
     return this.cacheCanvas
   }
-
   drawCircle(ctx, x, y) {
     ctx.save()
     ctx.beginPath()
@@ -269,7 +293,7 @@ export default class Avatar {
 
   drawText(ctx, text, x, y, born = false, fontSize = 12) {
     ctx.beginPath()
-    ctx.font = `${fontSize}px sans-serif`;
+    ctx.font = `${fontSize * this.ratio}px sans-serif`;
     ctx.fillStyle = `rgb(255, 255, 255)`
     ctx.strokeStyle = born ? 'rgba(255, 255, 255, 0.1)' : '#fff'
     ctx.textAlign = 'center'

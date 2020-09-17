@@ -76,7 +76,6 @@ export default class PhilTimebar {
     this.philDataWest = getLayOut({ nodes: this.philData.filter(node => node.originType == 'WEST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT });
 
     this.philData = this.philDataEast.concat(this.philDataWest)
-    console.log(this.philData)
     this.timerbar = new Timebar({
       $html: this.$html,
       canvas: this.canvas,
@@ -295,7 +294,7 @@ export default class PhilTimebar {
   }
   drawAvatar(avatarData, angle = 0) {
     if (avatarData) {
-      const { originType, itemName, timeStr, x, y, originY, itemId, avatarUrl, importance } = avatarData
+      const { originType, abbreviation, timeStr, x, y, originY, itemId, avatarUrl, importance } = avatarData
       if (!window[itemId]) {
         window[itemId] = new Avatar({
           $html: this.$html,
@@ -303,7 +302,7 @@ export default class PhilTimebar {
           canvas: this.canvas,
           avatarUrl,
           originType,
-          philName: itemName,
+          philName: abbreviation,
           born: timeStr,
           angle,
           x,
@@ -317,7 +316,7 @@ export default class PhilTimebar {
         window[itemId].x = x
         window[itemId].y = y
         window[itemId].originType = originType
-        window[itemId].itemName = itemName
+        window[itemId].philName = abbreviation
         window[itemId].timeStr = timeStr
         window[itemId].originY = originY
         window[itemId].avatarUrl = avatarUrl

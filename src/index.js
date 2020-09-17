@@ -33,8 +33,8 @@ const philTimeBar = new PhilTimebar({
     if (yearArr[node.year] === undefined) {
       yearArr[node.year] = 0;
     }
-    let month = yearArr[node.year] * 0.5;
-    let year = node.year > 0 ? node.year + month : node.year - (1 - month)
+    var month = yearArr[node.year] * 0.5 > 0 ? node.year + month : node.year - (1 - month)
+    let year = node.year
     yearArr[node.year]++;
     return {
       ...node,
@@ -60,3 +60,5 @@ const philTimeBar = new PhilTimebar({
     arrow: 'static/unfold@2x.png'
   },
 })
+
+console.log(yearArr)
