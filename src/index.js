@@ -33,12 +33,13 @@ const philTimeBar = new PhilTimebar({
     if (yearArr[node.year] === undefined) {
       yearArr[node.year] = 0;
     }
-    var month = yearArr[node.year] * 0.5 > 0 ? node.year + month : node.year - (1 - month)
-    let year = node.year
+    // var month = yearArr[node.year] * 0.5 > 0 ? node.year + month : node.year - (1 - month)
+    let year = node.month ? node.year > 0 ? node.year + 1 + node.month / 12 : node.year - 1 - node.month / 12 : node.year
+    // let year = node.year
     yearArr[node.year]++;
     return {
       ...node,
-      year
+      year,
     }
   }).sort((a, b) => {
     if (a.year == b.year) {

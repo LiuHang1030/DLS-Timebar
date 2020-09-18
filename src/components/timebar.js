@@ -35,7 +35,7 @@ export default class Timebar {
       maxUnitTime: 40, // 最大刻度
       unitIndex: 0,
       unitList: [40, 20, 10, 5, 2.5, 1, 0.5, 0.1],
-      zoomSpeed: 0.5,
+      zoomSpeed: 1,
       touchZoomSpeed: 1,
       zoom: 1,
       unitWidth: 24,
@@ -211,18 +211,11 @@ export default class Timebar {
    */
   updateBufferYears() {
     let currentStartTime = this.getTimeByPixel(this.translate.y);
-    let oneScreenTime = this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0);
-    this.bufferYears.min = parseInt(this.getTimeByPixel(0) - oneScreenTime);
-    this.bufferYears.max = parseInt(this.getTimeByPixel(0) + oneScreenTime * 2);
-    // if (this.unitTime !== 0.1) {
-    //   this.bufferYears.min = parseInt(this.getTimeByPixel(0) - oneScreenTime);
-    //   this.bufferYears.max = parseInt(this.getTimeByPixel(0) + oneScreenTime * 2);
-    // } else {
-    //   this.bufferYears.min = parseInt(this.getTimeByPixel(0) - 5);
-    //   this.bufferYears.max = parseInt(this.getTimeByPixel(0) + 10);
-    // }
+    let halfScreenTime = (this.getTimeByPixel(this.$html.height()) - this.getTimeByPixel(0)) / 2;
+    this.bufferYears.min = parseInt(this.getTimeByPixel(0) - halfScreenTime) - 1;
+    this.bufferYears.max = parseInt(this.getTimeByPixel(0) + halfScreenTime * 3) + 1;
     this.zeroX = this.getYbyTime(0);
-    this.renderStartX = ((this.minYear - currentStartTime - oneScreenTime) / this.unitTime) * this.unitWidth;
+    this.renderStartX = ((this.minYear - currentStartTime - halfScreenTime) / this.unitTime) * this.unitWidth;
   }
   drawUnit() {
     /**
@@ -235,18 +228,24 @@ export default class Timebar {
     /**
      * 绘制1年之前的刻度
      */
+    this.screenStartTime = this.getTimeByPixel(0)
+    this.screenEndTime = this.getTimeByPixel(this.$html.height())
     if (this.bufferYears.min < 0) {
       for (let i = 0; i > this.bufferYears.min; i -= this.unitTime) {
 
         let y = -(loneLineCounter + 1) * this.unitWidth + this.zeroX;
         let isLongUnit = (loneLineCounter + 1) % 10 == 0;
 
-        this.drawLine(y, isLongUnit ? 20 : 8);
+        if ((i - this.unitTime) >= this.screenStartTime && (i - this.unitTime) <= this.screenEndTime) {
+          this.drawLine(y, isLongUnit ? 20 : 8);
 
-        // console.log(i)
-        if (isLongUnit) {
-          this.drawText(i - this.unitTime, y)
+          // console.log(i)
+          if (isLongUnit) {
+            this.drawText(i - this.unitTime, y)
+          }
         }
+
+
 
         loneLineCounter++;
       }
@@ -268,12 +267,15 @@ export default class Timebar {
         if (i == 1) {
           text = '1AD'
         }
+        if ((i - 1) >= this.screenStartTime && (i - 1) <= this.screenEndTime) {
+          this.drawLine(y, isLongUnit ? 20 : 8);
 
-        this.drawLine(y, isLongUnit ? 20 : 8);
-
-        if (isLongUnit) {
-          this.drawText(text, y)
+          if (isLongUnit) {
+            this.drawText(text, y)
+          }
         }
+
+
 
         loneLineCounter++;
       }
@@ -567,12 +569,11 @@ export default class Timebar {
    * 缩放到，按照offset计算的区域
    * 根据现在中心时间，和目标中心时间差，进行移动。
    */
-  _zoomToSelectedOffset(startTime, endTime, unitTime, unitWidth, animate = 0, cb) {
+  zoomToSelectedOffset(startTime, endTime, unitTime, unitWidth, animate = 1, cb) {
 
 
     let targetCenterTime = startTime + (endTime - startTime) / 2;
     let currentCenterTime = this.getTimeByPixel(this.centerHeight);
-    console.log(currentCenterTime)
     let centerTimeDelta = targetCenterTime - currentCenterTime;
     TweenLite.to(this, animate, {
       ease: Power0.easeNone,
@@ -585,14 +586,17 @@ export default class Timebar {
         let centerTime = centerTimeDelta * animateProcess + currentCenterTime;
         this.updateTotalWidth();
         this.updateBufferYears();
-        this.setCenterByTime(centerTime, 0, true, cb);
+        this.setCenterByTime(currentCenterTime, 0, true, cb);
         // this.render()
-
         if (cb) {
           cb()
         } else {
           this.onChange();
         }
+      },
+      onFinish: () => {
+        this.unitIndex = this.unitList.findIndex((item) => item == unitTime)
+        this.unitWidth = unitWidth
       }
     })
 
@@ -762,6 +766,8 @@ export default class Timebar {
      */
     this.unitTime = newUnitTime;
     this.unitWidth = newUnitWidth;
+    console.log(this.unitTime)
+    console.log(this.unitWidth)
     /**
      * 更新总长度
      */

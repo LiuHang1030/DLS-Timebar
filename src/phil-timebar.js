@@ -28,7 +28,7 @@ export default class PhilTimebar {
       TEXT_AREA: 10,
       minYear: -800,
       maxYear: new Date().getFullYear(),
-      unitTime: [40, 20, 10, 4, 2, 1],
+      unitTime: [40, 20, 10, 5, 2.5, 1, 0.5, 0.1],
       minUnitWidth: 24,
       maxUnitWidth: 48,
       unitWidth: 24,
@@ -38,6 +38,7 @@ export default class PhilTimebar {
       eastRenderList: [],
       tabIndex: 1,
       timebarTranslateY: 50,
+      tabBarHeight: 0,
       quoteWidth: 120,
       NODE_HEIGHT: 120,
       avatarAssets: {},
@@ -48,11 +49,25 @@ export default class PhilTimebar {
     this.eastBubbles = this.bubbles.filter(item => item.originType == 'EAST')
     this.westBubbles = this.bubbles.filter(item => item.originType == 'WEST')
     this.totalTime = this.maxYear - this.minYear;
-
+    console.log(this.philData)
     this.philDataEast = getLayOut({ nodes: this.philData.filter(node => node.originType == 'EAST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT });
     this.philDataWest = getLayOut({ nodes: this.philData.filter(node => node.originType == 'WEST'), minYear: this.minYear, maxYear: this.maxYear, radius: this.NODE_HEIGHT });
 
+
+
+
+    this.controller = new Controller({
+      $html: this.$html,
+      canvas: this.canvas,
+      ctx: this.ctx,
+      tab: false,
+      slider: true,
+      onSliderClickHandle: (index) => {
+        this.switchImportantce(index)
+      }
+    })
     this.philData = this.philDataEast.concat(this.philDataWest)
+
     this.timerbar = new Timebar({
       $html: this.$html,
       canvas: this.canvas,
@@ -80,6 +95,57 @@ export default class PhilTimebar {
         this.calculatePosition()
       }
     })
+    const { level1, level2, level3 } = this.getMinZoom()
+
+  }
+  getMinZoom() {
+    let level1MinZoomLevel = this.philData.filter(node => node.importance == 1.1).sort((m, n) => m.layout.zoom - n.layout.zoom)
+    let level2MinZoomLevel = this.philData.filter(node => node.importance == 2).sort((m, n) => m.layout.zoom - n.layout.zoom)
+    let level3MinZoomLevel = this.philData.filter(node => node.importance == 3).sort((m, n) => m.layout && m.layout.zoom - n.layout && n.layout.zoom)
+
+    let level1MinZoom = window.innerHeight * level1MinZoomLevel[level1MinZoomLevel.length - 1].layout.zoom
+    let level2MinZoom = window.innerHeight * level2MinZoomLevel[level2MinZoomLevel.length - 1].layout.zoom
+    let level3MinZoom = window.innerHeight * level3MinZoomLevel[level2MinZoomLevel.length - 1].layout.zoom
+    let level1 = {}
+    let level2 = {}
+    let level3 = {}
+    // 根据 zoom 求当前 unitTime unitWidth
+    let level = 1
+    for (let index = 0; index < this.unitTime.length; index++) {
+      const unitTime = this.unitTime[index];
+      if (level > 3) return
+      for (let unitWidth = this.minUnitWidth; unitWidth <= this.maxUnitWidth; unitWidth += 1) {
+        let divide = window.innerHeight / unitWidth
+        switch (level) {
+          case 1:
+            if (divide * unitTime < level1MinZoom) {
+              level1 = {
+                unitTime,
+                unitWidth
+              }
+              level++
+            }
+            break;
+          case 2:
+            if (divide * unitTime < level2MinZoom) {
+              level2 = {
+                unitTime,
+                unitWidth
+              }
+              level++
+            }
+          case 3:
+            if (divide * unitTime < level3MinZoom) {
+              level3 = {
+                unitTime,
+                unitWidth
+              }
+            }
+            break;
+        }
+      }
+    }
+    return [level1, level2, level3]
   }
   onClickHandle(e) {
 
@@ -88,35 +154,48 @@ export default class PhilTimebar {
     let clickQuote = false
     const zeroY = parseInt(this.ruler.getYbyTime(this.screenStartTime))
     // 时间轴点击回调
-    let eastRenderList = this.philDataEast.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout.zoom > this.zoomLevel
-    })
+    let nowScreenRenderList = []
 
-    let westRenderList = this.philDataWest.filter((item) => {
-      return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout.zoom > this.zoomLevel
-    })
-    let nowScreenRenderList = eastRenderList.concat(westRenderList)
+    if (this.tabIndex == 0) {
+      let westRenderList = this.philDataWest.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout && item.layout.zoom > this.zoomLevel
+      })
+      nowScreenRenderList = westRenderList
+    } else if (this.tabIndex == 2) {
+      let eastRenderList = this.philDataEast.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout && item.layout.zoom > this.zoomLevel
+      })
+      nowScreenRenderList = eastRenderList
+    } else if (this.tabIndex == 1) {
+      let eastRenderList = this.philDataEast.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout && item.layout.zoom > this.zoomLevel
+      })
 
-
+      let westRenderList = this.philDataWest.filter((item) => {
+        return this.screenStartTime <= item.year && item.year <= this.screenEndTime && item.layout && item.layout.zoom > this.zoomLevel
+      })
+      nowScreenRenderList = eastRenderList.concat(westRenderList)
+    }
 
     let hasClickNodeList = nowScreenRenderList.filter((item) => {
       const { originType, switchLine } = item
 
 
       const x = item.x
-      const y = item.y + this.timebarTranslateY - zeroY
+      const y = item.y - zeroY + this.tabBarHeight
 
 
 
       if (this.tabIndex == 0 || this.tabIndex == 2) {
+
         const quoteX = originType == 'EAST' ? 20 : this.centerPx + 40
-        const quoteY = item.y + this.timebarTranslateY - zeroY
+        const quoteY = item.y + this.tabBarHeight - zeroY
         const quoteHeight = 40
 
         const quoteMinX = quoteX
         const quoteMaxX = quoteX + this.quoteWidth
         // switchLine 为 true 需要扩大范围
-        const quoteMinY = quoteY - quoteHeight / 2
+        const quoteMinY = quoteY - (quoteHeight / 2)
         const quoteMaxY = switchLine ? quoteY + (quoteHeight / 2) + SWITCH_LINE_HEIGHT : quoteY + quoteHeight / 2
 
         const xWithInQuote = quoteMinX <= pageX && pageX <= quoteMaxX
@@ -136,11 +215,11 @@ export default class PhilTimebar {
 
         return (xWithInQuote && yWithInQuote) || (xWithIn && yWithIn)
       } else {
+
         const minY = y - radius
         const maxY = y + radius
         const minX = x - radius
         const maxX = x + radius
-
         const xWithIn = minX <= pageX && pageX <= maxX
         const yWithIn = minY <= pageY && pageY <= maxY
 
@@ -151,15 +230,22 @@ export default class PhilTimebar {
     })
     if (hasClickNodeList && hasClickNodeList.length) {
       if (clickQuote) {
-        this.showQuote(hasClickNodeList[0])
-      } else {
+        // this.onQuoteClickHandle(e, hasClickNodeList[0])
         console.log(hasClickNodeList[0])
+      } else {
         // 弹出跳转 APP 登录框
+        console.log(hasClickNodeList[0])
+        // this.onNodeClickHandle(hasClickNodeList[0])
       }
     }
-
   }
-
+  switchImportantce(index) {
+    const zoomData = this.getMinZoom()
+    const { unitTime, unitWidth } = zoomData[index]
+    const startTime = this.screenStartTime
+    const endTime = this.screenEndTime
+    this.timerbar.zoomToSelectedOffset(startTime, endTime, unitTime, unitWidth, 1)
+  }
   createQuote() {
     this.eastQuote = $('<div></div>')
     this.westQuote = $('<div></div>')
@@ -326,6 +412,7 @@ export default class PhilTimebar {
         && node.year <= this.ruler.bufferYears.max
       ) {
         let y = (node.year - this.minYear) / this.zoomLevel;
+
         node.originY = y;
         if (node.layout.zoom >= this.zoomLevel) {
           if (before !== -1) {
