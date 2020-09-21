@@ -586,7 +586,7 @@ export default class Timebar {
         let centerTime = centerTimeDelta * animateProcess + currentCenterTime;
         this.updateTotalWidth();
         this.updateBufferYears();
-        this.setCenterByTime(currentCenterTime, 0, true, cb);
+        this.setCenterByTime(centerTime, 0, true, cb);
         // this.render()
         if (cb) {
           cb()
@@ -945,20 +945,20 @@ export default class Timebar {
       if (!this.mousedownPos.y2) {
         this.mousedownPos.y2 = events2.pageY;
       }
-      // var zoom = this.getDistance({
-      //   x: events.pageX,
-      //   y: events.pageY
-      // }, {
-      //   x: events2.pageX,
-      //   y: events2.pageY
-      // }) /
-      //   this.getDistance({
-      //     x: this.mousedownPos.x,
-      //     y: this.mousedownPos.y
-      //   }, {
-      //     x: this.mousedownPos.x2,
-      //     y: this.mousedownPos.y2
-      //   });
+      var zoom = this.getDistance({
+        x: events.pageX,
+        y: events.pageY
+      }, {
+        x: events2.pageX,
+        y: events2.pageY
+      }) /
+        this.getDistance({
+          x: this.mousedownPos.x,
+          y: this.mousedownPos.y
+        }, {
+          x: this.mousedownPos.x2,
+          y: this.mousedownPos.y2
+        });
       // var zoom = Math.abs((events.clientY - events2.clientY)) / 2
       // var zoom = (Math.abs() - Math.abs(())) / 2
       // - Math.abs((events2.clientY - this.mousedownPos.y2)) / 2
@@ -977,7 +977,7 @@ export default class Timebar {
       //   this._touchZoom(this.touchZoomSpeed * zoomRatio);
       // }
       // this.store.scale = translateRatio;
-      var zoom = Math.abs((events.clientY - events2.clientY)) / 2
+      // var zoom = Math.abs((events.clientY - events2.clientY)) / 2
 
       if (this.store.scale > zoom) {
         this._touchZoom(-this.touchZoomSpeed);
