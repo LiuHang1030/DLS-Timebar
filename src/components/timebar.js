@@ -4,7 +4,7 @@
  */
 import dateUtil from '../utils/dateUtil';
 import timeMath from '../utils/math';
-// import $ from 'jquery'
+import $ from 'jquery'
 
 import {
   TweenLite,
