@@ -465,10 +465,23 @@ export default class PhilTimebar {
   }
   hideBubbles(direction) {
     if (direction === 'WEST') {
-      TweenLite.to(this.bubbleLeft, 0.3, { opacity: 0 })
+      TweenLite.to(this.bubbleLeft, 0.3, {
+        opacity: 0
+      }, {
+        onFinish: () => {
+          this.bubbleLeft.style.display = 'none'
+        }
+      })
+
     }
     else {
-      TweenLite.to(this.bubbleRight, 0.3, { opacity: 0 })
+      TweenLite.to(this.bubbleRight, 0.3, {
+        opacity: 0
+      }, {
+        onFinish: () => {
+          this.bubbleRight.style.display = 'none'
+        }
+      })
     }
   }
   drawBubbles(direction = 'WEST') {
@@ -477,10 +490,12 @@ export default class PhilTimebar {
       if (bubble.philYear <= this.screenEndTime && bubble.philYear >= this.screenStartTime) {
         if (direction === 'WEST') {
           this.bubbleLeft.innerHTML = bubble.bubbleDesc;
+          this.bubbleLeft.style.display = 'block'
           TweenLite.to(this.bubbleLeft, 1, { opacity: 1 })
         }
         else {
           this.bubbleRight.innerHTML = bubble.bubbleDesc;
+          this.bubbleRight.style.display = 'block'
           TweenLite.to(this.bubbleRight, 1, { opacity: 1 })
         }
       }

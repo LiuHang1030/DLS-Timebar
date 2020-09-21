@@ -34,5 +34,6 @@ export default class View {
     this.centerHeight = this.$html.height() / 2;
     this.canvas.style.transformOrigin = '0 0'
     this.canvas.style.transform = `scale(${1 / this.ratio, 1 / this.ratio})`;
+    this.canvas.style.zIndex = 99
   }
 }

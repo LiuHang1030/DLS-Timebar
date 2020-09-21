@@ -59,6 +59,9 @@ export default class Timebar {
        * bufferMinYear 绘制起始数值
        * bufferMaxYear 绘制结束数值
        */
+      store: {
+        scale: 1
+      },
       bufferYears: {
         min: 0,
         max: 0,
@@ -264,10 +267,9 @@ export default class Timebar {
 
 
         let text = i - 1;
-        if (i == 1) {
-          text = '1AD'
-        }
-        if ((i - 1) >= this.screenStartTime && (i - 1) <= this.screenEndTime) {
+
+        if (text >= this.screenStartTime && text <= this.screenEndTime) {
+
           this.drawLine(y, isLongUnit ? 20 : 8);
 
           if (isLongUnit) {
@@ -336,7 +338,13 @@ export default class Timebar {
     }
     this.ctx.beginPath();
     this.ctx.textAlign = "center";
-    this.ctx.fillText(year < 0 ? `${Math.abs(text)}BC` : text, this.centerPx - 30, parseInt(y) + 3)
+
+    if (year == 0) {
+      text = '1AD'
+    } else if (year < 0) {
+      text = `${Math.abs(text)}BC`
+    }
+    this.ctx.fillText(text, this.centerPx - 30, parseInt(y) + 3)
     this.ctx.closePath();
     // let month = dateUtil.yearToMonth(year, 'short-en');
     // console.log(month)
@@ -910,7 +918,7 @@ export default class Timebar {
       let totalYear = screenEndTime - screenStartTime
       let yearPerPixel = totalYear / this.$html.height() // 每个像素占多少年
 
-      this.$html.find($('p')).html(yearPerPixel)
+      // this.$html.find($('p')).html(yearPerPixel)
 
     } else {
 
@@ -922,6 +930,7 @@ export default class Timebar {
         ...this.translate
       };
     }
+
 
   }
   _touchmove(e) {
@@ -945,47 +954,17 @@ export default class Timebar {
       if (!this.mousedownPos.y2) {
         this.mousedownPos.y2 = events2.pageY;
       }
-      var zoom = this.getDistance({
-        x: events.pageX,
-        y: events.pageY
-      }, {
-        x: events2.pageX,
-        y: events2.pageY
-      }) /
-        this.getDistance({
-          x: this.mousedownPos.x,
-          y: this.mousedownPos.y
-        }, {
-          x: this.mousedownPos.x2,
-          y: this.mousedownPos.y2
-        });
-      // var zoom = Math.abs((events.clientY - events2.clientY)) / 2
-      // var zoom = (Math.abs() - Math.abs(())) / 2
-      // - Math.abs((events2.clientY - this.mousedownPos.y2)) / 2
 
-      // var newScale = this.store.originScale * zoom;
-      // if (newScale > 3) {
-      //   newScale = 3;
-      // }
-
-      // let translateRatio = Math.abs((events.clientY - events2.clientY) / 2)
-      // let zoomRatio = (translateRatio / this.store.originScale).toFixed(2)
-      // this.$html.find($('p')).html(`${zoomRatio}`)
-      // if (zoomRatio < 1) {
-      //   this._touchZoom(-this.touchZoomSpeed * zoomRatio);
-      // } else {
-      //   this._touchZoom(this.touchZoomSpeed * zoomRatio);
-      // }
-      // this.store.scale = translateRatio;
-      // var zoom = Math.abs((events.clientY - events2.clientY)) / 2
+      var zoom = Math.abs((events.clientY - events2.clientY)) / 2
 
       if (this.store.scale > zoom) {
         this._touchZoom(-this.touchZoomSpeed);
       } else {
         this._touchZoom(this.touchZoomSpeed);
       }
-
       this.store.scale = zoom;
+      // this.$html.find($('p')).html(zoom)
+
 
     } else {
       // 单指操作
@@ -1027,7 +1006,7 @@ export default class Timebar {
 
 
     let mouseEventDom = $(window);
-    let toucheEventDom = $(window)
+    let toucheEventDom = $('#timebar')
 
 
     toucheEventDom.on('mousewheel', this._mouseWheel.bind(this))
