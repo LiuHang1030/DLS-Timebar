@@ -133,7 +133,7 @@ export default class Avatar {
       if (this.originType == 'EAST') {
         if (this.angle > 0) {
           // 先画折线
-          TweenLite.to(this.lineData, 0.33, {
+          TweenLite.to(this.lineData, 0.3, {
             x1: newX1,
             x2: newX2,
             y: newY,
@@ -142,7 +142,6 @@ export default class Avatar {
             onComplete: (tn) => {
               this.hasShow = true
               this.drawing = false
-
             }
           })
         } else {
@@ -154,16 +153,15 @@ export default class Avatar {
             onComplete: (tn) => {
               this.hasShow = true
               this.drawing = false
-
             }
           })
         }
       } else {
         if (this.angle > 0) {
-          TweenLite.to(this.lineData, 1, {
+          TweenLite.to(this.lineData, 0.3, {
             x1: newX1,
             x2: newX2,
-            y: newY,
+            y: this.y,
             opacity: 1,
             onUpdateParams: ['{ self }'],
             onComplete: (tn) => {

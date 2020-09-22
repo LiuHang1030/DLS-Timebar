@@ -61,5 +61,3 @@ const philTimeBar = new PhilTimebar({
     arrow: 'static/unfold@2x.png'
   },
 })
-
-console.log(yearArr)

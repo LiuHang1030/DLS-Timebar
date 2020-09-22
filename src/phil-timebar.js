@@ -445,6 +445,7 @@ export default class PhilTimebar {
           nodesDrawCount++;
         }
         else {
+          window[node.itemId] && window[node.itemId].hide()
           new Dot({
             $html: this.$html,
             canvas: this.canvas,
